@@ -209,6 +209,69 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
 @media(max-width:700px){body{height:auto;min-height:100dvh;overflow:auto}header{padding:14px 16px;flex-wrap:wrap}.header-meta{margin-left:60px}.header-meta .edition{text-align:left}.tab-container{padding:10px 16px}.tab-btn{padding:9px 11px;font-size:.74rem}.tab-content{padding:16px;overflow:visible;flex:auto}.section-intro{flex-wrap:wrap}.concept-chip{padding:6px 10px;font-size:.67rem}.usage-guide{margin:0 16px}.virtual-lab{padding:14px}.lab-controls{justify-content:flex-start}.lab-controls>div{max-width:100%;flex-wrap:wrap}.scenario-label,.scenario-actions{width:100%}.scenario-btn{flex:1}.readings{font-size:.77rem;text-align:center;line-height:1.7}.controls,.visualization{padding:17px}.visualization{min-height:350px}.chart-container{min-height:260px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
+    
+/* Etapa 1: animaciones basadas en el estado de cada modelo */
+.telemetry-grid{
+    width:min(100%,1080px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;margin-top:15px;
+}
+.telemetry-card{
+    position:relative;min-width:0;text-align:left;overflow:hidden;
+    border:1px solid rgba(148,198,223,.16);border-radius:12px;
+    background:linear-gradient(145deg,rgba(6,18,34,.8),rgba(19,41,58,.72));
+    padding:12px 16px 13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+.telemetry-card::before{
+    content:"";position:absolute;right:-19px;top:-33px;width:87px;height:87px;border-radius:50%;
+    background:radial-gradient(circle,rgba(68,226,209,.11),transparent 67%);
+    pointer-events:none;
+}
+.telemetry-label{display:flex;align-items:center;gap:7px;color:#a9bfd1;font-size:.68rem;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.telemetry-label::before{content:"";width:6px;height:6px;border-radius:50%;background:#4ddfc9;box-shadow:0 0 8px rgba(75,225,208,.4)}
+.telemetry-value{display:block;margin:5px 0 0;color:#f4fcff;font-size:clamp(1.04rem,1.6vw,1.4rem);line-height:1.15;font-family:'Space Grotesk',sans-serif;font-weight:700;white-space:nowrap}
+.telemetry-note{display:block;color:#819eb2;font-size:.64rem;margin-top:5px;line-height:1.45}
+.telemetry-meter{margin-top:11px;overflow:hidden;height:5px;border-radius:99px;background:rgba(127,163,185,.21)}
+.telemetry-meter>i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#697bff,#42ead5);box-shadow:0 0 10px rgba(65,228,210,.36);transition:width .26s ease-out}
+.telemetry-card.rf-metric .telemetry-label::before{background:#f7be61;box-shadow:0 0 8px rgba(251,173,57,.3)}
+.telemetry-card.rf-metric .telemetry-meter>i{background:linear-gradient(90deg,#fd9568,#f3cb64)}
+.telemetry-card.turbi-metric .telemetry-label::before{background:#83b7ff}
+.telemetry-card.turbi-metric .telemetry-meter>i{background:linear-gradient(90deg,#5f79ff,#6ce7de)}
+.simulation-area,.telecom-visual,.tank-container{isolation:isolate}
+.simulation-area{background-image:linear-gradient(to right,rgba(5,23,37,.68),rgba(12,44,65,.12)),repeating-linear-gradient(90deg,rgba(97,191,197,.045) 0 1px,transparent 1px 40px)}
+.flashlight{position:relative;z-index:3;background:linear-gradient(#d3dfe5,#7f95a2);border:1px solid rgba(237,254,255,.55)}
+.flashlight::before{content:"";position:absolute;left:9px;top:7px;width:17px;height:9px;border-radius:3px;background:rgba(39,65,81,.5)}
+.light-beam{position:relative;overflow:hidden;transition:opacity .18s linear,width .16s linear;filter:drop-shadow(0 0 10px rgba(30,206,228,.18))}
+.light-beam .photon{position:absolute;left:-10px;top:24%;width:6px;height:4px;background:#c9faff;border-radius:50%;box-shadow:0 0 7px #f0ffff;animation:photonTravel 1.8s linear infinite}
+.light-beam .photon:nth-child(2){top:54%;animation-delay:-.6s}
+.light-beam .photon:nth-child(3){top:74%;animation-delay:-1.2s}
+@keyframes photonTravel{0%{left:-8px;opacity:0}12%{opacity:.75}82%{opacity:.9}100%{left:105%;opacity:0}}
+.ldr-sensor{transition:filter .2s,box-shadow .2s;background:linear-gradient(90deg,#d64f5d,#f27d59);z-index:4}
+.ldr-sensor::before{content:"";position:absolute;top:6px;left:6px;width:12px;height:31px;border-radius:3px;background:rgba(255,242,207,.38)}
+.telecom-visual{border-radius:13px 13px 0 0;background:radial-gradient(ellipse at 17% 70%,rgba(63,116,149,.18),transparent 54%),linear-gradient(to top,rgba(9,43,63,.25),transparent)}
+.cityscape{background:repeating-linear-gradient(90deg,#344e63 0 17px,transparent 17px 24px,#263c50 24px 54px,transparent 54px 60px);border-top:1px solid rgba(142,211,226,.2);box-shadow:0 -9px 35px rgba(20,85,106,.15);transition:height .25s ease-out}
+.cityscape::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0 12px,rgba(249,210,120,.18) 13px 15px,transparent 16px 21px);mask-image:repeating-linear-gradient(90deg,black 0 4px,transparent 4px 13px)}
+.rf-wave{background-size:190px 100%;background-repeat:repeat-x;animation:rfAdvance 2.3s linear infinite;transition:opacity .25s,filter .25s}
+.rf-wave::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(151,242,251,.12),transparent);background-size:38% 100%;background-repeat:no-repeat;animation:rfSweep 3.3s linear infinite;pointer-events:none}
+@keyframes rfAdvance{from{background-position:0 0}to{background-position:190px 0}}
+@keyframes rfSweep{from{background-position:-60% 0}to{background-position:160% 0}}
+.tower{z-index:4;background:linear-gradient(90deg,#58687a,#b0bfc8 60%,#60758b);border:1px solid rgba(230,244,255,.27)}
+.tank-container{background:linear-gradient(180deg,rgba(13,75,99,.3),rgba(15,48,67,.5));border-radius:11px;box-shadow:inset 0 10px 30px rgba(4,34,53,.4),0 9px 30px rgba(0,0,0,.12)}
+.water-murkiness{background:linear-gradient(180deg,rgba(122,121,78,.93),rgba(51,88,83,.98));transition:opacity .3s}
+.water-particles{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .3s}
+.water-particles span{position:absolute;width:5px;height:5px;border:1px solid rgba(241,217,157,.45);border-radius:50%;background:rgba(236,219,178,.64);box-shadow:0 0 9px rgba(250,219,151,.19);animation:floatParticle 3s ease-in-out infinite alternate}
+.water-particles span:nth-child(1){left:9%;top:20%}.water-particles span:nth-child(2){left:17%;top:70%;animation-delay:-.5s;width:4px}
+.water-particles span:nth-child(3){left:27%;top:40%;animation-delay:-1.1s}.water-particles span:nth-child(4){left:35%;top:83%;animation-delay:-.7s;width:7px}
+.water-particles span:nth-child(5){left:44%;top:18%;animation-delay:-1.8s}.water-particles span:nth-child(6){left:54%;top:60%;animation-delay:-1.3s;width:7px}
+.water-particles span:nth-child(7){left:65%;top:29%;animation-delay:-.2s}.water-particles span:nth-child(8){left:74%;top:78%;animation-delay:-1.7s;width:4px}
+.water-particles span:nth-child(9){left:85%;top:31%;animation-delay:-.9s}.water-particles span:nth-child(10){left:93%;top:62%;animation-delay:-1.4s}
+.water-particles span:nth-child(11){left:38%;top:18%;animation-delay:-.3s;width:3px}.water-particles span:nth-child(12){left:79%;top:48%;animation-delay:-2s;width:7px}
+@keyframes floatParticle{0%{transform:translateY(-8px) translateX(-3px)}100%{transform:translateY(10px) translateX(5px)}}
+.turbi-beam{transition:opacity .25s,filter .25s;animation:waterBeam 2.5s ease-in-out infinite alternate}
+@keyframes waterBeam{50%{filter:drop-shadow(0 0 11px rgba(111,245,215,.5))}}
+.turbi-sensor{transition:filter .25s;background:linear-gradient(#effbff,#82a8ae)}
+@media(max-width:700px){.telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.telemetry-card{padding:11px}.telemetry-card:last-child{grid-column:span 2}.telemetry-value{font-size:1.11rem}.telemetry-label{font-size:.59rem}}
+@media(max-width:420px){.telemetry-grid{grid-template-columns:1fr}.telemetry-card:last-child{grid-column:auto}}
+
     </style>
 </head>
 <body>
@@ -270,10 +333,15 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 <button class="btn-danger" onclick="clearDataLab()">🗑️ Borrar</button>
             </div>
             <div class="simulation-area">
-                <div class="flashlight-container" id="flashlightContainer"><div class="flashlight"></div><div class="light-beam" id="lightBeam"></div></div>
+                <div class="flashlight-container" id="flashlightContainer"><div class="flashlight"></div><div class="light-beam" id="lightBeam"><span class="photon"></span><span class="photon"></span><span class="photon"></span></div></div>
                 <div class="ldr-sensor"></div>
             </div>
             <div class="readings" id="liveReadings">Distancia: 20.0 cm | Voltaje: 0.00 V</div>
+            <div class="telemetry-grid" aria-label="Indicadores del sensor LDR">
+                <div class="telemetry-card"><span class="telemetry-label">Distancia</span><strong class="telemetry-value" id="ldrDistanceMetric">20.0 cm</strong><small class="telemetry-note">Separación entre fuente y sensor</small></div>
+                <div class="telemetry-card"><span class="telemetry-label">Voltaje medido</span><strong class="telemetry-value" id="ldrVoltageMetric">0.00 V</strong><div class="telemetry-meter"><i id="ldrVoltageBar"></i></div></div>
+                <div class="telemetry-card"><span class="telemetry-label">Escala del sensor</span><strong class="telemetry-value" id="ldrScaleMetric">0 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
+            </div>
         </div>
         <div class="container">
             <aside class="controls glass-panel">
@@ -348,7 +416,12 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 <div class="cityscape" id="cityscape"></div>
                 <div class="tower"></div><div class="rf-wave" id="rfWave"></div><div class="tower"></div>
             </div>
-            <div class="readings" id="rfReadings" style="color: var(--warning); text-shadow: 0 0 8px var(--warning);">Distancia: 10.0 km | Densidad: 0% | Señal: 0 dBm</div>
+            <div class="readings" id="rfReadings" style="color: var(--warning); text-shadow: none;">Distancia: 10.0 km | Densidad: 0% | Señal: 0 dBm</div>
+            <div class="telemetry-grid" aria-label="Indicadores del enlace de radio">
+                <div class="telemetry-card rf-metric"><span class="telemetry-label">Distancia del enlace</span><strong class="telemetry-value" id="rfDistanceMetric">10.0 km</strong><small class="telemetry-note">Trayecto simulado</small></div>
+                <div class="telemetry-card rf-metric"><span class="telemetry-label">Potencia recibida</span><strong class="telemetry-value" id="rfPowerMetric">0.0 dBm</strong><div class="telemetry-meter"><i id="rfPowerBar"></i></div><small class="telemetry-note">Barra visual: −120 a −60 dBm</small></div>
+                <div class="telemetry-card rf-metric"><span class="telemetry-label">Pérdida urbana adicional</span><strong class="telemetry-value" id="rfUrbanMetric">0.0 dB</strong><small class="telemetry-note">Término de atenuación del modelo</small></div>
+            </div>
         </div>
 
         <div class="container">
@@ -402,9 +475,18 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 <div class="water-murkiness" id="waterMurkiness"></div>
                 <div class="turbi-laser"></div>
                 <div class="turbi-beam" id="turbiBeam"></div>
-                <div class="turbi-sensor"></div>
+                <div class="turbi-sensor" id="turbiSensor"></div>
+                <div class="water-particles" id="waterParticles" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
             </div>
             <div class="readings" id="turbiReadings">Turbidez: 0 NTU | Sensor: 9.00 V</div>
+            <div class="telemetry-grid" aria-label="Indicadores del turbidímetro">
+                <div class="telemetry-card turbi-metric"><span class="telemetry-label">Concentración</span><strong class="telemetry-value" id="turbiNtuMetric">0 NTU</strong><small class="telemetry-note">Nivel de turbidez simulado</small></div>
+                <div class="telemetry-card turbi-metric"><span class="telemetry-label">Voltaje del sensor</span><strong class="telemetry-value" id="turbiVoltageMetric">9.00 V</strong><div class="telemetry-meter"><i id="turbiVoltageBar"></i></div></div>
+                <div class="telemetry-card turbi-metric"><span class="telemetry-label">Señal relativa</span><strong class="telemetry-value" id="turbiRelativeMetric">100 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
+            </div>
         </div>
 
         <div class="container">
@@ -519,13 +601,33 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
 
         // --- 1. LDR ---
         function calculateVirtualVoltage(d) { return Math.max(0.1, Math.min(9, (90 / (10 + 0.137 * Math.pow(d, 1.6))) + (Math.random()-0.5)*0.1)); }
+        // Instrumentación visual: no interviene en los algoritmos numéricos.
+        function writeTelemetry(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
+        function fillTelemetry(id, percent) {
+            const element = document.getElementById(id);
+            if (element) element.style.width = Math.max(0, Math.min(100, percent)) + '%';
+        }
         function updateLab() {
             const d = parseFloat(document.getElementById('distSlider').value);
-            document.getElementById('liveReadings').innerText = `Distancia: ${d.toFixed(1)} cm | Voltaje: ${calculateVirtualVoltage(d).toFixed(2)} V`;
-            const px = ((120 - d) / 115) * 650; 
-            document.getElementById('flashlightContainer').style.left = `calc(100% - ${px + 50}px)`; 
-            document.getElementById('lightBeam').style.width = `${px}px`; 
-            document.getElementById('lightBeam').style.opacity = Math.max(0.1, 1 - (d / 120)); 
+            const voltage = calculateVirtualVoltage(d);
+            const relative = Math.max(0, Math.min(1, voltage / 9));
+            document.getElementById('liveReadings').innerText = `Distancia: ${d.toFixed(1)} cm | Voltaje: ${voltage.toFixed(2)} V`;
+
+            // Separación gráfica y brillo ligados a las variables del modelo.
+            const px = 36 + ((d - 5) / 115) * 614;
+            document.getElementById('flashlightContainer').style.left = `calc(100% - ${px + 50}px)`;
+            const beam = document.getElementById('lightBeam');
+            beam.style.width = `${px}px`;
+            beam.style.opacity = Math.max(0.12, relative);
+            document.querySelector('.ldr-sensor').style.filter = `brightness(${0.55 + 1.45 * relative})`;
+
+            writeTelemetry('ldrDistanceMetric', d.toFixed(1) + ' cm');
+            writeTelemetry('ldrVoltageMetric', voltage.toFixed(2) + ' V');
+            writeTelemetry('ldrScaleMetric', (relative * 100).toFixed(1) + ' %');
+            fillTelemetry('ldrVoltageBar', relative * 100);
         }
         function startRecordingLab() {
             const durationSec = parseInt(document.getElementById('recordTimeLab').value), btn = document.getElementById('btnRecordLab');
@@ -596,11 +698,19 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             const ptx = parseFloat(document.getElementById('txPower').value), g = parseFloat(document.getElementById('txGain').value), f = parseFloat(document.getElementById('freqVal').value);
             const power = getRFPower(d, u, ptx, g, f);
             document.getElementById('rfReadings').innerText = `Distancia: ${d.toFixed(1)} km | Densidad: ${u}% | Señal: ${power.toFixed(1)} dBm`;
-            
-            const city = document.getElementById('cityscape'); city.style.height = `${(u/100) * 80}px`;
+
+            // Representación cualitativa: edificios y ondas cambian con el modelo.
+            document.getElementById('cityscape').style.height = `${(u / 100) * 80}px`;
             const wave = document.getElementById('rfWave');
-            if (u > 50) wave.style.background = `repeating-radial-gradient(circle at 0 50%, rgba(255, 71, 87, 0.4) 0, transparent 25px)`;
-            else wave.style.background = `repeating-radial-gradient(circle at 0 50%, rgba(0, 210, 255, 0.4) 0, transparent 25px)`;
+            if (u > 50) wave.style.backgroundImage = `repeating-radial-gradient(circle at 0 50%, rgba(255, 154, 103, 0.5) 0, transparent 25px)`;
+            else wave.style.backgroundImage = `repeating-radial-gradient(circle at 0 50%, rgba(57, 224, 241, 0.5) 0, transparent 25px)`;
+            const relativePower = Math.max(0, Math.min(1, (power + 120) / 60));
+            wave.style.opacity = (0.25 + 0.75 * relativePower) * (1 - 0.58 * u / 100);
+
+            writeTelemetry('rfDistanceMetric', d.toFixed(1) + ' km');
+            writeTelemetry('rfPowerMetric', power.toFixed(1) + ' dBm');
+            writeTelemetry('rfUrbanMetric', ((u / 100) * 0.4 * d).toFixed(1) + ' dB');
+            fillTelemetry('rfPowerBar', relativePower * 100);
         }
         function startRecordingRF() {
             const durationSec = parseInt(document.getElementById('timeRF').value), btn = document.getElementById('btnRecordRF');
@@ -700,8 +810,18 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
         function getTurbiVolt(ntu) { return Math.max(0.1, 9.0 * Math.exp(-0.03 * ntu) + (Math.random()-0.5)*0.15); }
         function updateTurbi() {
             const ntu = parseFloat(document.getElementById('turbiSlider').value);
-            document.getElementById('turbiReadings').innerText = `Turbidez: ${ntu} NTU | Sensor: ${getTurbiVolt(ntu).toFixed(2)} V`;
-            document.getElementById('waterMurkiness').style.opacity = ntu / 100; document.getElementById('turbiBeam').style.opacity = Math.max(0.1, 1 - (ntu/80));
+            const voltage = getTurbiVolt(ntu);
+            const relative = Math.max(0, Math.min(1, voltage / 9));
+            document.getElementById('turbiReadings').innerText = `Turbidez: ${ntu} NTU | Sensor: ${voltage.toFixed(2)} V`;
+            document.getElementById('waterMurkiness').style.opacity = ntu / 100;
+            document.getElementById('turbiBeam').style.opacity = Math.max(0.08, relative);
+            document.getElementById('waterParticles').style.opacity = Math.pow(ntu / 100, 0.75) * 0.9;
+            document.getElementById('turbiSensor').style.filter = `brightness(${0.55 + 1.45 * relative})`;
+
+            writeTelemetry('turbiNtuMetric', ntu.toFixed(0) + ' NTU');
+            writeTelemetry('turbiVoltageMetric', voltage.toFixed(2) + ' V');
+            writeTelemetry('turbiRelativeMetric', (relative * 100).toFixed(1) + ' %');
+            fillTelemetry('turbiVoltageBar', relative * 100);
         }
         function startRecordingTurbi() {
             const durationSec = parseInt(document.getElementById('turbiRecordTime').value), btn = document.getElementById('btnRecordTurbi');
