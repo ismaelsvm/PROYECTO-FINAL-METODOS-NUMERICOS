@@ -8,7 +8,7 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
         :root {
             --neon-blue: #00d2ff;
@@ -135,6 +135,74 @@
         .card { padding: 25px; }
         .card h3 { display:flex; align-items:center; margin-top: 0; color: var(--neon-blue); border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
         .math-box { background: rgba(0,0,0,0.4); border-left: 4px solid var(--neon-purple); padding: 15px; margin: 15px 0; overflow-x: auto; font-size: 1.1em; border-radius: 0 6px 6px 0; }
+    
+/* Interfaz de laboratorio 2.0: mejoras visuales sin cambiar los algoritmos */
+:root { --neon-blue:#4ee7d5; --neon-purple:#687bff; --glass-bg:rgba(12,24,44,.88); --glass-border:rgba(171,206,238,.18); --text-muted:#a9bed4; --success:#39d7a1; }
+* { font-family:'Manrope',sans-serif; }
+body { background:radial-gradient(ellipse at 10% 4%,#163361,transparent 43%),radial-gradient(ellipse at 92% 90%,#104a51,transparent 42%),#070d1a;line-height:1.5; }
+body::before { content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(120,180,215,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(120,180,215,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(black,transparent 95%); }
+.background-blobs{opacity:.33}
+header,.tab-container,.tab-content{position:relative;z-index:1}
+header{padding:17px clamp(16px,3.4vw,52px);gap:16px;background:rgba(5,13,27,.83);border-color:var(--glass-border)}
+header h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.18rem,1.7vw,1.55rem);letter-spacing:-.04em;background:linear-gradient(90deg,#fff,#79f7e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.18}
+.brand-group{display:flex;align-items:center;gap:14px}
+.brand-mark{display:grid;place-items:center;flex:none;width:46px;height:46px;background:linear-gradient(145deg,rgba(65,232,210,.25),rgba(100,112,255,.13));border:1px solid rgba(79,229,211,.48);border-radius:14px;color:#8cffe9;font-size:1.5rem}
+.brand-kicker,.eyebrow{display:block;color:#74eddc;font-size:.63rem;letter-spacing:.17em;text-transform:uppercase;font-weight:800}
+.brand-kicker{margin-bottom:3px}
+.header-meta{display:flex;align-items:center;gap:16px}
+.header-meta .edition{font-size:.73rem;color:var(--text-muted);text-align:right}
+.live-status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:99px;color:#b0f9e7;font-size:.68rem;font-weight:800;border:1px solid rgba(77,225,191,.3);background:rgba(77,225,191,.08);white-space:nowrap}
+.live-status::before{content:"";width:8px;height:8px;border-radius:50%;background:#53ecb9;box-shadow:0 0 9px #4decad;animation:breathe 2.2s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.35;box-shadow:none}}
+.tab-container{padding:12px clamp(16px,3.4vw,52px);gap:7px;overflow-x:auto;background:rgba(5,12,23,.43);border-color:var(--glass-border)}
+.tab-btn{flex:none;border:1px solid transparent;border-radius:12px;padding:10px 17px;font-size:.84rem;font-weight:800;color:#a4b6cc;box-shadow:none}
+.tab-btn:hover{color:white;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);box-shadow:none}
+.tab-btn.active{color:#a1ffef;background:rgba(73,231,209,.12);border-color:rgba(73,231,209,.28);text-shadow:none}
+.tab-btn.active::after{display:none}
+.tab-content{padding:21px clamp(16px,3.4vw,52px) 32px;gap:17px}
+.section-intro{display:flex;align-items:end;justify-content:space-between;gap:14px}
+.section-intro h2{margin:4px 0 5px;font-family:'Space Grotesk',sans-serif;font-size:clamp(1.3rem,2vw,1.8rem);letter-spacing:-.035em;line-height:1.2;color:white}
+.section-intro p{margin:0;max-width:70ch;color:var(--text-muted);font-size:.83rem}
+.concept-chip{flex:none;border:1px solid rgba(125,141,255,.3);border-radius:99px;background:rgba(103,119,255,.11);padding:8px 13px;font-weight:800;color:#bac5ff;font-size:.71rem}
+.usage-guide{position:relative;z-index:2;flex:none;margin:0 clamp(16px,3.4vw,52px);border:1px solid rgba(158,189,222,.18);border-radius:12px;background:rgba(18,33,55,.65)}
+.usage-guide summary{list-style:none;cursor:pointer;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;color:#bdcde1;font-size:.77rem;font-weight:750}
+.usage-guide summary::-webkit-details-marker{display:none}
+.usage-guide summary::after{content:"+";color:#74f4e1;font-size:1rem}
+.usage-guide[open] summary::after{content:"−"}
+.guide-body{padding:0 16px 13px;color:#b4c5d9;font-size:.76rem;line-height:1.8}
+.guide-body strong{color:#adffec}
+.scenario-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;border:1px solid rgba(72,225,208,.19);border-radius:13px;background:linear-gradient(90deg,rgba(44,146,138,.16),rgba(13,28,48,.62))}
+.scenario-label{font-size:.78rem;font-weight:800;color:#d7fff5;margin-right:auto}
+.scenario-label small{display:block;font-size:.66rem;font-weight:500;color:#a5b8c6}
+.scenario-actions{display:flex;flex-wrap:wrap;gap:7px}
+.scenario-btn{border:1px solid rgba(148,178,213,.27);border-radius:9px;padding:8px 12px;font-size:.71rem;font-weight:800;background:rgba(11,24,43,.85);color:#c3d3e6;box-shadow:none}
+.scenario-btn:hover,.scenario-btn.selected{color:#adfff0;background:rgba(50,208,181,.2);border-color:rgba(89,242,209,.55);box-shadow:none}
+.glass-panel{background:var(--glass-bg);border-radius:17px;box-shadow:0 12px 42px rgba(0,0,0,.2)}
+.virtual-lab{padding:21px;margin-bottom:0;background:linear-gradient(120deg,rgba(19,40,63,.95),rgba(11,23,41,.95))}
+.virtual-lab>h3{font-family:'Space Grotesk',sans-serif}
+.lab-controls{border-radius:12px;background:rgba(4,12,25,.42);border-color:rgba(155,189,220,.14);padding:13px 17px;gap:14px}
+label{color:#b7c9db;font-weight:700}
+input,select,textarea{background:rgba(4,13,27,.65);border-color:rgba(161,187,216,.22);border-radius:9px;font-family:'Manrope',sans-serif}
+input[type=range]{appearance:none;-webkit-appearance:none;height:7px;padding:0;border:0;border-radius:30px;cursor:pointer;background:linear-gradient(to right,#4ee7d5 0%,#4ee7d5 var(--range-fill,0%),rgba(122,145,172,.32) var(--range-fill,0%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border:4px solid #1bc9b6;border-radius:50%;background:#effffa;box-shadow:0 0 0 4px rgba(85,239,213,.13)}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border:4px solid #1bc9b6;border-radius:50%;background:#effffa}
+button:not(.tab-btn):not(.scenario-btn){border-radius:10px}
+button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffeb;outline-offset:3px}
+.simulation-area{border:1px solid rgba(80,174,190,.13);border-bottom:2px solid rgba(62,217,204,.37);border-radius:12px;background:linear-gradient(rgba(4,14,30,.6),rgba(6,18,29,.1));overflow:hidden}
+.simulation-area::after,.telecom-visual::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(133,205,212,.06) 1px,transparent 1px);background-size:34px 100%}
+.readings{font-size:.95rem;font-weight:800;letter-spacing:.01em;margin-top:15px;padding:8px 15px;border-radius:30px;background:rgba(55,215,190,.09);border:1px solid rgba(55,215,190,.18);text-shadow:none}
+.controls{width:320px;flex-shrink:0;padding:22px}
+.visualization{padding:22px}
+.chart-container{min-height:285px}
+.results-panel{border-radius:10px;text-shadow:none;font-size:.84rem;line-height:1.6}
+.help-desc{border-radius:9px;background:rgba(64,219,211,.07);color:#c4eae7}
+.card{padding:clamp(19px,3vw,32px)}
+.card h3{font-family:'Space Grotesk',sans-serif}
+.math-box{border-radius:10px;background:rgba(3,12,27,.55)}
+@media(max-width:1000px){.container{flex-direction:column;min-height:auto}.controls{width:100%;overflow:visible}.visualization{min-height:410px}.section-intro{align-items:flex-start}}
+@media(max-width:700px){body{height:auto;min-height:100dvh;overflow:auto}header{padding:14px 16px;flex-wrap:wrap}.header-meta{margin-left:60px}.header-meta .edition{text-align:left}.tab-container{padding:10px 16px}.tab-btn{padding:9px 11px;font-size:.74rem}.tab-content{padding:16px;overflow:visible;flex:auto}.section-intro{flex-wrap:wrap}.concept-chip{padding:6px 10px;font-size:.67rem}.usage-guide{margin:0 16px}.virtual-lab{padding:14px}.lab-controls{justify-content:flex-start}.lab-controls>div{max-width:100%;flex-wrap:wrap}.scenario-label,.scenario-actions{width:100%}.scenario-btn{flex:1}.readings{font-size:.77rem;text-align:center;line-height:1.7}.controls,.visualization{padding:17px}.visualization{min-height:350px}.chart-container{min-height:260px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
     </style>
 </head>
 <body>
@@ -146,8 +214,11 @@
     </div>
 
     <header>
-        <h1>Análisis Numérico - UNMSM</h1>
-        <span style="font-size: 0.85rem; color: var(--text-muted);">Ingeniería de Telecomunicaciones · Versión de Ismael</span>
+        <div class="brand-group"><div class="brand-mark" aria-hidden="true">∿</div>
+            <div><span class="brand-kicker">Laboratorio virtual · UNMSM</span><h1>Análisis Numérico</h1></div>
+        </div>
+        <div class="header-meta"><span class="edition">Ingeniería de Telecomunicaciones · Versión de Ismael</span>
+            <span class="live-status">SIMULACIÓN ACTIVA</span></div>
     </header>
 
     <div class="tab-container">
@@ -157,7 +228,24 @@
         <button class="tab-btn" onclick="openTab(event, 'compTab')">📊 Matemática</button>
     </div>
 
+    <details class="usage-guide">
+        <summary>ⓘ ¿Cómo usar el simulador? · Guía rápida</summary>
+        <div class="guide-body"><strong>1.</strong> Elige un laboratorio y mueve los controles o pulsa un escenario.
+            <strong>2.</strong> Presiona <strong>Grabar</strong> (o <strong>Manual</strong> en turbidimetría) para obtener muestras.
+            <strong>3.</strong> Selecciona un método numérico y ejecuta el análisis para visualizar el resultado.
+            Los valores son simulados y pueden incluir variaciones; los escenarios no modifican las ecuaciones.</div>
+    </details>
     <div id="labTab" class="tab-content active">
+        <div class="section-intro"><div><span class="eyebrow">LABORATORIO 01 / ÓPTICA</span>
+            <h2>Atenuación de luz con sensor LDR</h2>
+            <p>Aleja la fuente luminosa y observa cómo responde el voltaje. Registra puntos y calcula valores intermedios.</p>
+        </div><span class="concept-chip">Distancia ↔ Voltaje</span></div>
+        <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
+            <small>Prueba distintas distancias</small></div><div class="scenario-actions">
+            <button type="button" class="scenario-btn" data-scenario="ldr" data-value="10" onclick="applyScenario('ldr',10)">Cerca · 10 cm</button>
+            <button type="button" class="scenario-btn" data-scenario="ldr" data-value="55" onclick="applyScenario('ldr',55)">Media · 55 cm</button>
+            <button type="button" class="scenario-btn" data-scenario="ldr" data-value="110" onclick="applyScenario('ldr',110)">Lejos · 110 cm</button>
+        </div></div>
         <div class="virtual-lab glass-panel">
             <div class="lab-controls">
                 <div>
@@ -202,6 +290,16 @@
     </div>
 
     <div id="fieldTab" class="tab-content">
+        <div class="section-intro"><div><span class="eyebrow">LABORATORIO 02 / RADIOFRECUENCIA</span>
+            <h2>Cobertura de señal en entornos urbanos</h2>
+            <p>Simula un recorrido y cambia la densidad de edificios para observar la pérdida de potencia recibida.</p>
+        </div><span class="concept-chip">Distancia + Obstáculos → dBm</span></div>
+        <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
+            <small>Misma ruta, distinta densidad urbana</small></div><div class="scenario-actions">
+            <button type="button" class="scenario-btn" data-scenario="rf" data-value="0" onclick="applyScenario('rf',0)">Campo abierto · 0%</button>
+            <button type="button" class="scenario-btn" data-scenario="rf" data-value="50" onclick="applyScenario('rf',50)">Zona mixta · 50%</button>
+            <button type="button" class="scenario-btn" data-scenario="rf" data-value="90" onclick="applyScenario('rf',90)">Zona densa · 90%</button>
+        </div></div>
         <div class="virtual-lab glass-panel">
             <h3 style="margin:0 0 5px 0; color: var(--neon-blue);">Simulación Drive-Test en Entornos Urbanos</h3>
             <div class="lab-controls">
@@ -267,6 +365,16 @@
     </div>
 
     <div id="turbiTab" class="tab-content">
+        <div class="section-intro"><div><span class="eyebrow">LABORATORIO 03 / INSTRUMENTACIÓN</span>
+            <h2>Calidad óptica del agua</h2>
+            <p>Ajusta la turbidez y observa la atenuación de luz en el sensor mediante el modelo de Beer-Lambert.</p>
+        </div><span class="concept-chip">Turbidez ↑ · Luz ↓</span></div>
+        <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
+            <small>Prueba niveles de concentración</small></div><div class="scenario-actions">
+            <button type="button" class="scenario-btn" data-scenario="turbi" data-value="5" onclick="applyScenario('turbi',5)">Agua clara · 5 NTU</button>
+            <button type="button" class="scenario-btn" data-scenario="turbi" data-value="40" onclick="applyScenario('turbi',40)">Moderada · 40 NTU</button>
+            <button type="button" class="scenario-btn" data-scenario="turbi" data-value="90" onclick="applyScenario('turbi',90)">Muy turbia · 90 NTU</button>
+        </div></div>
         <div class="virtual-lab glass-panel">
             <h3 style="margin:0 0 5px 0; color: var(--neon-blue);">Turbidímetro Industrial</h3>
             <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-muted);">Monitoreo continuo para eventos de contaminación en tuberías.</p>
@@ -313,6 +421,10 @@
     </div>
 
     <div id="compTab" class="tab-content">
+        <div class="section-intro"><div><span class="eyebrow">FUNDAMENTO CIENTÍFICO / MODELOS</span>
+            <h2>¿Qué matemáticas hay detrás?</h2>
+            <p>Estas ecuaciones conectan lo que ves en pantalla con los algoritmos que procesan las muestras simuladas.</p>
+        </div><span class="concept-chip">Lagrange · RK4 · Simpson · Newton</span></div>
         <div class="analysis-container">
             <div class="card glass-panel">
                 <h3>1. Óptica: EDO del LDR
@@ -353,7 +465,7 @@
     <script>
         // --- CONFIGURACIÓN GLOBAL CHART.JS ---
         Chart.defaults.color = '#a0aec0';
-        Chart.defaults.font.family = "'Poppins', sans-serif";
+        Chart.defaults.font.family = "'Manrope', sans-serif";
         const gridConfig = { color: 'rgba(255, 255, 255, 0.05)' };
         const chartOptionsBase = {
             responsive: true, maintainAspectRatio: false, animation: false,
@@ -664,8 +776,42 @@
             document.getElementById('turbiResults').innerHTML = htmlRes;
         }
 
+
+        // Escenarios visuales: solo ajustan los mismos deslizadores del simulador original.
+        const scenarioSliders = { ldr: 'distSlider', rf: 'urbanSlider', turbi: 'turbiSlider' };
+        function syncScenarioButtons(type) {
+            const slider = document.getElementById(scenarioSliders[type]);
+            if (!slider) return;
+            document.querySelectorAll('[data-scenario="' + type + '"]').forEach(btn => {
+                const selected = Number(btn.dataset.value) === Number(slider.value);
+                btn.classList.toggle('selected', selected);
+                btn.setAttribute('aria-pressed', String(selected));
+            });
+        }
+        function applyScenario(type, value) {
+            const slider = document.getElementById(scenarioSliders[type]);
+            if (!slider) return;
+            slider.value = value;
+            slider.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        function setupInteractiveControls() {
+            document.querySelectorAll('input[type="range"]').forEach(slider => {
+                const paint = () => {
+                    const min = Number(slider.min) || 0, max = Number(slider.max) || 100;
+                    const fill = max === min ? 0 : 100 * (Number(slider.value) - min) / (max - min);
+                    slider.style.setProperty('--range-fill', Math.max(0, Math.min(100, fill)) + '%');
+                };
+                slider.addEventListener('input', paint);
+                paint();
+            });
+            Object.keys(scenarioSliders).forEach(type => {
+                document.getElementById(scenarioSliders[type]).addEventListener('input', () => syncScenarioButtons(type));
+                syncScenarioButtons(type);
+            });
+        }
+
         // Init
-        window.onload = () => { toggleInputsLab(); updateLab(); runSimulationLab(); toggleInputsTelecom(); updateRF(); runTelecomSimulation(); toggleInputsTurbi(); updateTurbi(); runTurbiSimulation(); };
+        window.onload = () => { toggleInputsLab(); updateLab(); runSimulationLab(); toggleInputsTelecom(); updateRF(); runTelecomSimulation(); toggleInputsTurbi(); updateTurbi(); runTurbiSimulation(); setupInteractiveControls(); };
     </script>
 </body>
 </html>
