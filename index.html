@@ -137,6 +137,12 @@
         .math-box { background: rgba(0,0,0,0.4); border-left: 4px solid var(--neon-purple); padding: 15px; margin: 15px 0; overflow-x: auto; font-size: 1.1em; border-radius: 0 6px 6px 0; }
     
 /* Interfaz de laboratorio 2.0: mejoras visuales sin cambiar los algoritmos */
+/* Un solo desplazamiento de página; evita recortes en paneles y gráficas */
+body { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; }
+.tab-content { overflow:visible; flex:1 0 auto; }
+.container { min-height:auto; }
+.controls { overflow:visible; }
+
 :root { --neon-blue:#4ee7d5; --neon-purple:#687bff; --glass-bg:rgba(12,24,44,.88); --glass-border:rgba(171,206,238,.18); --text-muted:#a9bed4; --success:#39d7a1; }
 * { font-family:'Manrope',sans-serif; }
 body { background:radial-gradient(ellipse at 10% 4%,#163361,transparent 43%),radial-gradient(ellipse at 92% 90%,#104a51,transparent 42%),#070d1a;line-height:1.5; }
