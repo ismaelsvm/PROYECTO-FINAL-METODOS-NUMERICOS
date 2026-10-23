@@ -3,9 +3,11 @@
 Este repositorio contiene el modelado matemático, la resolución numérica y la simulación interactiva de fenómenos de atenuación de señales aplicados a la Ingeniería de Telecomunicaciones.
 
 ##  Sobre el Simulador Web (Dashboard)
-Hemos desarrollado un **Dashboard Analítico** (Single Page Application) que permite visualizar y experimentar con los modelos en tiempo real. 
+El proyecto incluye un **Dashboard Analítico** (Single Page Application) que permite visualizar y experimentar con los modelos en tiempo real.
 
- **[CLIC AQUÍ PARA ABRIR EL SIMULADOR INTERACTIVO] https://italounmsm.github.io/PROYECTO-FINAL-METODOS-NUMERICOS/**
+**[ABRIR EL SIMULADOR INTERACTIVO](https://ismaelsvm.github.io/PROYECTO-FINAL-METODOS-NUMERICOS/)**
+
+Versión publicada y mantenida en el GitHub de **Ismael** (`ismaelsvm`), como base para nuevas mejoras. Proyecto original: [ItaloUNMSM/PROYECTO-FINAL-METODOS-NUMERICOS](https://github.com/ItaloUNMSM/PROYECTO-FINAL-METODOS-NUMERICOS).
 
 ##  Laboratorios Incluidos
 1. **Óptica LDR (Escala Laboratorio):** Simulación de atenuación geométrica de luz en espacio libre.
