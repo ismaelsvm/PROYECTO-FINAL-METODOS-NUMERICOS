@@ -272,6 +272,47 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
 @media(max-width:700px){.telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.telemetry-card{padding:11px}.telemetry-card:last-child{grid-column:span 2}.telemetry-value{font-size:1.11rem}.telemetry-label{font-size:.59rem}}
 @media(max-width:420px){.telemetry-grid{grid-template-columns:1fr}.telemetry-card:last-child{grid-column:auto}}
 
+    
+/* Etapa 2: comparador A/B y lectura interactiva de curvas */
+.compare-panel{padding:0;overflow:hidden;border-color:rgba(112,180,216,.23);background:linear-gradient(130deg,rgba(16,36,57,.95),rgba(10,23,42,.96));}
+.compare-panel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:15px;padding:17px 20px;min-height:74px}
+.compare-panel>summary::-webkit-details-marker{display:none}
+.compare-symbol{display:grid;place-items:center;width:40px;height:40px;flex:none;border:1px solid rgba(111,226,214,.3);border-radius:12px;background:rgba(53,219,206,.1);font-size:1.4rem;color:#88fff0}
+.compare-head{display:flex;flex-direction:column;gap:3px}
+.compare-head strong{font-family:'Space Grotesk',sans-serif;color:#e9fcfc;letter-spacing:-.025em;font-size:1rem}
+.compare-head small{color:#9db8ce;font-size:.72rem;font-weight:500}
+.compare-callout{margin-left:auto;display:inline-flex;align-items:center;gap:8px;color:#9ef1e4;font-size:.71rem;font-weight:800;white-space:nowrap}
+.compare-callout::after{content:"⌄";font-size:1.1rem;transition:transform .2s ease}
+.compare-panel[open] .compare-callout::after{transform:rotate(180deg)}
+.compare-panel>summary:hover{background:rgba(255,255,255,.025)}
+.compare-body{border-top:1px solid rgba(144,184,205,.14);padding:18px 20px 21px}
+.compare-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.compare-actions button{padding:10px 16px;box-shadow:none!important;font-size:.77rem;font-weight:850}
+.compare-save-a{background:linear-gradient(140deg,#167a7d,#2bcdb2)!important}
+.compare-save-b{background:linear-gradient(140deg,#a96628,#efa749)!important}
+.compare-clear{background:rgba(126,146,177,.12)!important;border:1px solid rgba(155,181,209,.19)!important;color:#c8d6e3!important}
+.compare-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:14px}
+.compare-slot{padding:12px 15px;border:1px dashed rgba(143,178,206,.25);border-radius:12px;background:rgba(3,14,29,.35);min-width:0}
+.compare-slot[data-filled="true"]{border-style:solid;border-color:rgba(125,234,204,.31);background:rgba(45,139,128,.09)}
+.compare-slot.compare-b[data-filled="true"]{border-color:rgba(245,178,96,.35);background:rgba(138,87,38,.1)}
+.compare-slot .compare-slot-title{font-size:.64rem;letter-spacing:.14em;font-weight:850;color:#70eddb;text-transform:uppercase}
+.compare-slot.compare-b .compare-slot-title{color:#f8c37d}
+.compare-slot p{font-size:.8rem;font-weight:750;color:#c5d6e7;margin:5px 0 0}
+.compare-hint{font-size:.74rem;color:#9eb9cc;line-height:1.5;margin:13px 0 0}
+.compare-output{margin-top:18px}
+.compare-output[hidden]{display:none}
+.compare-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px}
+.compare-result{padding:13px 15px;border:1px solid rgba(151,188,222,.14);border-radius:11px;background:rgba(6,19,34,.62)}
+.compare-result small{color:#9eb2c5;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;font-weight:850}
+.compare-result strong{display:block;margin-top:5px;font:700 clamp(1rem,1.5vw,1.3rem)/1.1 'Space Grotesk',sans-serif;color:#f4fffd}
+.compare-result.a strong{color:#69e8d6}
+.compare-result.b strong{color:#f7c078}
+.compare-result.delta strong{color:#d4e6fb}
+.compare-chart{position:relative;height:305px;padding:12px 13px 9px;border-radius:13px;border:1px solid rgba(158,192,220,.14);background:rgba(3,13,26,.45)}
+.compare-chart canvas{max-height:100%}
+.compare-footnote{display:block;margin-top:10px;color:#91aabe;font-size:.69rem;line-height:1.5}
+@media(max-width:700px){.compare-panel>summary{padding:13px 15px}.compare-body{padding:14px}.compare-callout{font-size:0}.compare-callout::after{font-size:1.1rem}.compare-actions button{flex:1;min-width:100px}.compare-slots{grid-template-columns:1fr}.compare-results{grid-template-columns:1fr}.compare-chart{height:260px}}
+
     </style>
 </head>
 <body>
@@ -343,6 +384,38 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 <div class="telemetry-card"><span class="telemetry-label">Escala del sensor</span><strong class="telemetry-value" id="ldrScaleMetric">0 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
             </div>
         </div>
+
+        <details class="compare-panel glass-panel" id="comparePanel-ldr">
+            <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
+                <span class="compare-head"><strong>Comparador de escenarios A/B</strong><small>Guarda dos distancias y compara los voltajes del LDR.</small></span>
+                <span class="compare-callout">Abrir comparador</span>
+            </summary>
+            <div class="compare-body">
+                <div class="compare-actions">
+                    <button type="button" class="compare-save-a" onclick="captureComparison('ldr','A')">◉ Guardar escenario A</button>
+                    <button type="button" class="compare-save-b" onclick="captureComparison('ldr','B')">◉ Guardar escenario B</button>
+                    <button type="button" class="compare-clear" onclick="resetComparison('ldr')">↺ Limpiar comparación</button>
+                </div>
+                <div class="compare-slots">
+                    <div class="compare-slot" id="compareSlot-ldr-A" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO A</span><p id="compareCaption-ldr-A">Sin guardar</p>
+                    </div>
+                    <div class="compare-slot compare-b" id="compareSlot-ldr-B" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO B</span><p id="compareCaption-ldr-B">Sin guardar</p>
+                    </div>
+                </div>
+                <p class="compare-hint" id="compareHint-ldr">Ajusta los controles, guarda A; cambia los parámetros y guarda B. Puedes reemplazarlos cuantas veces quieras.</p>
+                <div class="compare-output" id="compareOutput-ldr" role="region" aria-label="Resultados de la comparación" hidden>
+                    <div class="compare-results">
+                        <div class="compare-result a"><small>Resultado A</small><strong id="compareValue-ldr-A">—</strong></div>
+                        <div class="compare-result b"><small>Resultado B</small><strong id="compareValue-ldr-B">—</strong></div>
+                        <div class="compare-result delta"><small>Diferencia B − A</small><strong id="compareValue-ldr-Delta">—</strong></div>
+                    </div>
+                    <div class="compare-chart"><canvas id="compareChart-ldr" aria-label="Gráfica de los escenarios A y B" role="img"></canvas></div>
+                    <small class="compare-footnote">Curva ideal calculada con la ecuación original, sin ruido aleatorio. Pasa el cursor por los puntos o curvas; haz clic en la leyenda para mostrar u ocultar series.</small>
+                </div>
+            </div>
+        </details>
         <div class="container">
             <aside class="controls glass-panel">
                 <label>Datos (d, V) <div class="info-tooltip"><span class="icon">i</span><div class="text">Muestras discretas capturadas por el sensor. Puedes borrar, modificar o añadir puntos de calibración de forma manual.</div></div></label>
@@ -399,15 +472,15 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 <div class="compact-inputs">
                     <div>
                         <label>Tx(dBm) <div class="info-tooltip"><span class="icon">i</span><div class="text">Potencia de Transmisión. Valores altos inyectan más energía bruta a la señal, extendiendo su alcance máximo antes de morir.</div></div></label>
-                        <input type="number" id="txPower" value="25" style="width:65px;" onchange="runTelecomSimulation()">
+                        <input type="number" id="txPower" value="25" style="width:65px;" onchange="updateRF(); runTelecomSimulation()">
                     </div>
                     <div>
                         <label>Ganancia <div class="info-tooltip"><span class="icon">i</span><div class="text">Suma de ganancia direccional (Tx + Rx). Concentra la energía de la onda de forma enfocada en vez de irradiarla omnidireccionalmente.</div></div></label>
-                        <input type="number" id="txGain" value="15" style="width:65px;" onchange="runTelecomSimulation()">
+                        <input type="number" id="txGain" value="15" style="width:65px;" onchange="updateRF(); runTelecomSimulation()">
                     </div>
                     <div>
                         <label>F(GHz) <div class="info-tooltip"><span class="icon">i</span><div class="text">Frecuencia de Operación (Ej. 5.8 GHz). Altas frecuencias llevan más ancho de banda pero se atenúan mucho más rápido en el aire.</div></div></label>
-                        <input type="number" id="freqVal" value="5.8" step="0.1" style="width:65px;" onchange="runTelecomSimulation()">
+                        <input type="number" id="freqVal" value="5.8" step="0.1" style="width:65px;" onchange="updateRF(); runTelecomSimulation()">
                     </div>
                 </div>
             </div>
@@ -424,6 +497,38 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             </div>
         </div>
 
+
+        <details class="compare-panel glass-panel" id="comparePanel-rf">
+            <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
+                <span class="compare-head"><strong>Comparador de escenarios A/B</strong><small>Contrasta densidad urbana, distancia y configuración del enlace.</small></span>
+                <span class="compare-callout">Abrir comparador</span>
+            </summary>
+            <div class="compare-body">
+                <div class="compare-actions">
+                    <button type="button" class="compare-save-a" onclick="captureComparison('rf','A')">◉ Guardar escenario A</button>
+                    <button type="button" class="compare-save-b" onclick="captureComparison('rf','B')">◉ Guardar escenario B</button>
+                    <button type="button" class="compare-clear" onclick="resetComparison('rf')">↺ Limpiar comparación</button>
+                </div>
+                <div class="compare-slots">
+                    <div class="compare-slot" id="compareSlot-rf-A" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO A</span><p id="compareCaption-rf-A">Sin guardar</p>
+                    </div>
+                    <div class="compare-slot compare-b" id="compareSlot-rf-B" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO B</span><p id="compareCaption-rf-B">Sin guardar</p>
+                    </div>
+                </div>
+                <p class="compare-hint" id="compareHint-rf">Ajusta los controles, guarda A; cambia los parámetros y guarda B. Puedes reemplazarlos cuantas veces quieras.</p>
+                <div class="compare-output" id="compareOutput-rf" role="region" aria-label="Resultados de la comparación" hidden>
+                    <div class="compare-results">
+                        <div class="compare-result a"><small>Resultado A</small><strong id="compareValue-rf-A">—</strong></div>
+                        <div class="compare-result b"><small>Resultado B</small><strong id="compareValue-rf-B">—</strong></div>
+                        <div class="compare-result delta"><small>Diferencia B − A</small><strong id="compareValue-rf-Delta">—</strong></div>
+                    </div>
+                    <div class="compare-chart"><canvas id="compareChart-rf" aria-label="Gráfica de los escenarios A y B" role="img"></canvas></div>
+                    <small class="compare-footnote">Curvas teóricas de pérdida de trayectoria, sin ruido aleatorio. Pasa el cursor por los puntos o curvas; haz clic en la leyenda para mostrar u ocultar series.</small>
+                </div>
+            </div>
+        </details>
         <div class="container">
             <aside class="controls glass-panel">
                 <textarea id="dataRF" placeholder="Datos Drive-Test (Km, dBm)"></textarea>
@@ -489,6 +594,38 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             </div>
         </div>
 
+
+        <details class="compare-panel glass-panel" id="comparePanel-turbi">
+            <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
+                <span class="compare-head"><strong>Comparador de escenarios A/B</strong><small>Compara dos concentraciones y sus voltajes de salida.</small></span>
+                <span class="compare-callout">Abrir comparador</span>
+            </summary>
+            <div class="compare-body">
+                <div class="compare-actions">
+                    <button type="button" class="compare-save-a" onclick="captureComparison('turbi','A')">◉ Guardar escenario A</button>
+                    <button type="button" class="compare-save-b" onclick="captureComparison('turbi','B')">◉ Guardar escenario B</button>
+                    <button type="button" class="compare-clear" onclick="resetComparison('turbi')">↺ Limpiar comparación</button>
+                </div>
+                <div class="compare-slots">
+                    <div class="compare-slot" id="compareSlot-turbi-A" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO A</span><p id="compareCaption-turbi-A">Sin guardar</p>
+                    </div>
+                    <div class="compare-slot compare-b" id="compareSlot-turbi-B" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO B</span><p id="compareCaption-turbi-B">Sin guardar</p>
+                    </div>
+                </div>
+                <p class="compare-hint" id="compareHint-turbi">Ajusta los controles, guarda A; cambia los parámetros y guarda B. Puedes reemplazarlos cuantas veces quieras.</p>
+                <div class="compare-output" id="compareOutput-turbi" role="region" aria-label="Resultados de la comparación" hidden>
+                    <div class="compare-results">
+                        <div class="compare-result a"><small>Resultado A</small><strong id="compareValue-turbi-A">—</strong></div>
+                        <div class="compare-result b"><small>Resultado B</small><strong id="compareValue-turbi-B">—</strong></div>
+                        <div class="compare-result delta"><small>Diferencia B − A</small><strong id="compareValue-turbi-Delta">—</strong></div>
+                    </div>
+                    <div class="compare-chart"><canvas id="compareChart-turbi" aria-label="Gráfica de los escenarios A y B" role="img"></canvas></div>
+                    <small class="compare-footnote">Curva Beer-Lambert con los parámetros actuales del modelo, sin ruido aleatorio. Pasa el cursor por los puntos o curvas; haz clic en la leyenda para mostrar u ocultar series.</small>
+                </div>
+            </div>
+        </details>
         <div class="container">
             <aside class="controls glass-panel">
                 <textarea id="turbiData" placeholder="Datos de Calibración (NTU, V)"></textarea>
@@ -557,8 +694,10 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
         const gridConfig = { color: 'rgba(255, 255, 255, 0.05)' };
         const chartOptionsBase = {
             responsive: true, maintainAspectRatio: false, animation: false,
+            interaction: { mode: 'nearest', intersect: false },
             scales: { x: { grid: gridConfig, title: { display: true, color: '#00d2ff', font: {weight: 'bold'} } }, y: { grid: gridConfig, title: { display: true, color: '#00d2ff', font: {weight: 'bold'} } } },
-            plugins: { legend: { labels: { color: '#ffffff', usePointStyle: true } } }
+            plugins: { legend: { labels: { color: '#ffffff', usePointStyle: true } },
+                tooltip: { enabled: true, backgroundColor: 'rgba(7, 23, 43, 0.96)', borderColor: 'rgba(83, 219, 208, 0.5)', borderWidth: 1, padding: 10 } }
         };
 
         let myChart = null, telecomChartObj = null, turbiChartObj = null;
@@ -933,6 +1072,171 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             Object.keys(scenarioSliders).forEach(type => {
                 document.getElementById(scenarioSliders[type]).addEventListener('input', () => syncScenarioButtons(type));
                 syncScenarioButtons(type);
+            });
+        }
+
+
+        // --- COMPARADOR A/B (lecturas teóricas, sin ruido aleatorio) ---
+        const comparisonState = {
+            ldr: { A: null, B: null, chart: null },
+            rf: { A: null, B: null, chart: null },
+            turbi: { A: null, B: null, chart: null }
+        };
+        // Usan las mismas expresiones ideales de las funciones originales.
+        function theoreticalLdr(d) {
+            return Math.max(0.1, Math.min(9, 90 / (10 + 0.137 * Math.pow(d, 1.6))));
+        }
+        function theoreticalRf(d, p) {
+            return p.ptx + p.g - 20 * Math.log10(d) - 20 * Math.log10(p.f)
+                - 92.45 - ((p.u / 100) * 0.4 * d);
+        }
+        function theoreticalTurbi(ntu) { return 9 * Math.exp(-0.03 * ntu); }
+        function readComparisonScenario(type) {
+            const val = id => Number(document.getElementById(id).value);
+            if (type === 'ldr') {
+                const d = val('distSlider');
+                return { d, value: theoreticalLdr(d), caption: d.toFixed(0) + ' cm de distancia' };
+            }
+            if (type === 'rf') {
+                const p = { d: val('distRF'), u: val('urbanSlider'), ptx: val('txPower'),
+                    g: val('txGain'), f: val('freqVal') };
+                if (![p.d,p.u,p.ptx,p.g,p.f].every(Number.isFinite) || p.d <= 0 || p.f <= 0) return null;
+                p.value = theoreticalRf(p.d, p);
+                p.caption = p.d.toFixed(1) + ' km · ' + p.u.toFixed(0) + '% urbano · ' + p.f.toFixed(1) + ' GHz';
+                return p;
+            }
+            if (type === 'turbi') {
+                const ntu = val('turbiSlider');
+                return { ntu, value: theoreticalTurbi(ntu), caption: ntu.toFixed(0) + ' NTU de turbidez' };
+            }
+            return null;
+        }
+        function captureComparison(type, slot) {
+            if (!comparisonState[type] || !['A', 'B'].includes(slot)) return;
+            const snapshot = readComparisonScenario(type);
+            const hint = document.getElementById('compareHint-' + type);
+            if (!snapshot || !Number.isFinite(snapshot.value)) {
+                hint.textContent = 'Revisa los parámetros: la distancia y la frecuencia deben ser positivas y los valores numéricos válidos.';
+                return;
+            }
+            comparisonState[type][slot] = snapshot;
+            const slotElement = document.getElementById('compareSlot-' + type + '-' + slot);
+            slotElement.dataset.filled = 'true';
+            document.getElementById('compareCaption-' + type + '-' + slot).textContent = snapshot.caption;
+            renderComparison(type);
+        }
+        function resetComparison(type) {
+            const state = comparisonState[type];
+            if (!state) return;
+            if (state.chart) { state.chart.destroy(); state.chart = null; }
+            state.A = null; state.B = null;
+            for (const slot of ['A', 'B']) {
+                document.getElementById('compareSlot-' + type + '-' + slot).dataset.filled = 'false';
+                document.getElementById('compareCaption-' + type + '-' + slot).textContent = 'Sin guardar';
+            }
+            document.getElementById('compareOutput-' + type).hidden = true;
+            document.getElementById('compareHint-' + type).textContent = 'Comparación reiniciada. Guarda dos configuraciones para volver a contrastarlas.';
+        }
+        function comparisonData(type, a, b) {
+            const teal = '#57e8d5', orange = '#f5b36c', blue = '#8397ff';
+            const point = (label, sample, x) => ({
+                label, data: [{ x, y: sample.value }], pointRadius: 9, pointHoverRadius: 12,
+                pointStyle: label.startsWith('B') ? 'rectRot' : 'circle',
+                backgroundColor: label.startsWith('B') ? orange : teal,
+                borderColor: '#e9feff', borderWidth: 1, showLine: false
+            });
+            if (type === 'ldr' || type === 'turbi') {
+                const ldr = type === 'ldr', start = ldr ? 5 : 0, end = ldr ? 120 : 100;
+                const curve = [];
+                for (let x = start; x <= end; x += ldr ? 1 : 1) {
+                    curve.push({ x, y: ldr ? theoreticalLdr(x) : theoreticalTurbi(x) });
+                }
+                return {
+                    xTitle: ldr ? 'Distancia (cm)' : 'Turbidez (NTU)',
+                    yTitle: 'Voltaje (V)', xUnit: ldr ? 'cm' : 'NTU', yUnit: 'V',
+                    datasets: [
+                        {label: 'Modelo teórico',data:curve,showLine:true,pointRadius:0,
+                            borderColor:blue,borderWidth:2.7,tension:0.12},
+                        point('A · Lectura teórica', a, ldr ? a.d : a.ntu),
+                        point('B · Lectura teórica', b, ldr ? b.d : b.ntu)
+                    ]
+                };
+            }
+            const dataFor = sample => {
+                const curve = [];
+                for (let d = 1; d <= 50; d += 1) curve.push({x:d,y:theoreticalRf(d,sample)});
+                return curve;
+            };
+            return {
+                xTitle:'Distancia (km)', yTitle:'Potencia recibida (dBm)',
+                xUnit:'km', yUnit:'dBm',
+                datasets:[
+                    {label:'Cobertura A · '+a.u.toFixed(0)+'% urbano',data:dataFor(a),
+                        showLine:true,pointRadius:0,borderColor:teal,borderWidth:2.5,tension:0.1},
+                    {label:'Cobertura B · '+b.u.toFixed(0)+'% urbano',data:dataFor(b),
+                        showLine:true,pointRadius:0,borderColor:orange,borderWidth:2.5,borderDash:[7,4],tension:0.1},
+                    point('A · Punto de operación',a,a.d),
+                    point('B · Punto de operación',b,b.d)
+                ]
+            };
+        }
+        const comparisonGuide = {
+            id:'comparisonGuide',
+            afterDraw(chart) {
+                const elements = chart.getActiveElements();
+                if (!elements.length || !chart.chartArea) return;
+                const x = elements[0].element.x, area = chart.chartArea, ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();ctx.setLineDash([4,5]);ctx.strokeStyle = 'rgba(174,228,234,.36)';
+                ctx.moveTo(x,area.top);ctx.lineTo(x,area.bottom);ctx.stroke();ctx.restore();
+            }
+        };
+        function renderComparison(type) {
+            const state = comparisonState[type], a = state.A, b = state.B;
+            const output = document.getElementById('compareOutput-' + type);
+            const hint = document.getElementById('compareHint-' + type);
+            if (!a || !b) {
+                output.hidden = true;
+                hint.textContent = a ? 'A guardado. Ajusta los controles y guarda el escenario B.'
+                    : 'B guardado. Ajusta los controles y guarda el escenario A.';
+                return;
+            }
+            const delta = b.value - a.value;
+            const unit = type === 'rf' ? 'dBm' : 'V';
+            document.getElementById('compareValue-' + type + '-A').textContent = a.value.toFixed(2) + ' ' + unit;
+            document.getElementById('compareValue-' + type + '-B').textContent = b.value.toFixed(2) + ' ' + unit;
+            document.getElementById('compareValue-' + type + '-Delta').textContent = (delta >= 0 ? '+' : '−')
+                + Math.abs(delta).toFixed(2) + (type === 'rf' ? ' dB' : ' V');
+            hint.textContent = 'Comparación lista. Puedes guardar A o B otra vez para actualizarla con nuevos parámetros.';
+            output.hidden = false;
+            if (state.chart) { state.chart.destroy(); state.chart = null; }
+            const config = comparisonData(type, a, b);
+            state.chart = new Chart(document.getElementById('compareChart-' + type).getContext('2d'), {
+                type:'scatter', data:{datasets:config.datasets},
+                plugins:[comparisonGuide],
+                options:{
+                    responsive:true,maintainAspectRatio:false,animation:{duration:240},
+                    interaction:{mode:'nearest',intersect:false},
+                    scales:{
+                        x:{type:'linear',grid:{color:'rgba(160,199,227,.065)'},
+                            title:{display:true,text:config.xTitle,color:'#73e6db',font:{weight:'bold'}},
+                            ticks:{color:'#a9c2d1'}},
+                        y:{type:'linear',grid:{color:'rgba(160,199,227,.065)'},
+                            title:{display:true,text:config.yTitle,color:'#73e6db',font:{weight:'bold'}},
+                            ticks:{color:'#a9c2d1'}}
+                    },
+                    plugins:{
+                        legend:{position:'top',labels:{color:'#d8e9f1',usePointStyle:true,boxWidth:9,padding:13,font:{size:11}}},
+                        tooltip:{
+                            enabled:true,backgroundColor:'rgba(6,22,41,.96)',borderColor:'rgba(103,222,208,.5)',
+                            borderWidth:1,padding:11,displayColors:true,
+                            callbacks:{label(ctx){
+                                return ctx.dataset.label + ': ' + ctx.parsed.x.toFixed(1) + ' ' + config.xUnit
+                                    + ' → ' + ctx.parsed.y.toFixed(2) + ' ' + config.yUnit;
+                            }}
+                        }
+                    }
+                }
             });
         }
 
