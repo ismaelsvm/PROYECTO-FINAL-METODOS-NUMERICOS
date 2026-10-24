@@ -355,6 +355,32 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
 @media(max-width:850px){.live-demo-layout{grid-template-columns:1fr}.demo-plot{min-height:225px}.demo-plot-chart{min-height:165px}}
 @media(max-width:650px){.auto-run-form{grid-template-columns:repeat(2,minmax(0,1fr))}.auto-run-form .auto-run-btn{grid-column:1 / -1}.auto-run-panel{padding:15px}.demo-scene .readings{font-size:.71rem}.lab-controls{gap:9px}}
 
+
+/* Etapa 4: lectura física y diferenciación entre medición y método numérico */
+.experiment-summary{
+    padding:clamp(18px,2.6vw,27px);border-color:rgba(74,221,188,.29);
+    background:linear-gradient(115deg,rgba(17,54,56,.93),rgba(12,28,47,.95));
+    display:flex;flex-direction:column;gap:13px;
+}
+.experiment-summary[hidden]{display:none}
+.summary-top h3{margin:5px 0 4px;font:700 clamp(1.12rem,1.8vw,1.5rem)/1.2 'Space Grotesk',sans-serif;color:#ecfff7}
+.summary-top p{margin:0;color:#9fbdc9;font-size:.76rem}
+.summary-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.summary-stat{min-width:0;padding:12px 15px;border:1px solid rgba(133,194,210,.18);border-radius:12px;background:rgba(5,24,38,.6)}
+.summary-stat small{display:block;color:#a6c3d0;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.summary-stat strong{display:block;margin-top:4px;font:700 clamp(.98rem,1.5vw,1.3rem)/1.3 'Space Grotesk',sans-serif;color:#f0fcff;font-variant-numeric:tabular-nums}
+.summary-stat.featured{background:rgba(52,168,151,.13);border-color:rgba(102,221,194,.34)}
+.summary-stat.featured strong{color:#87ffdd}
+.summary-explanation{border-left:3px solid #60e8cc;padding:10px 13px;margin:1px 0 0;border-radius:0 8px 8px 0;background:rgba(92,228,198,.07);font-size:.85rem;line-height:1.7;color:#d5f6ef}
+.summary-science{margin:0;font-size:.68rem;color:#9fb7c3}
+.numeric-heading{margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:13px;flex-wrap:wrap}
+.numeric-heading h3{margin:3px 0 0;font:700 clamp(.94rem,1.4vw,1.23rem)/1.3 'Space Grotesk',sans-serif;color:#eafffd}
+.numeric-heading p{flex:1 1 220px;max-width:400px;margin:0;color:#a8c6d4;font-size:.75rem;line-height:1.55}
+.demo-plot-head{position:relative}
+.demo-plot-head::after{content:"│ Posición actual";position:absolute;right:0;top:0;color:#f8cb83;font-size:.66rem;font-weight:800}
+@media(max-width:850px){.numeric-heading{flex-direction:column}.numeric-heading p{flex:auto;max-width:none}}
+@media(max-width:650px){.summary-metrics{grid-template-columns:1fr}.summary-stat{padding:10px 12px}.summary-explanation{font-size:.79rem}.demo-plot-head::after{top:auto;bottom:0}}
+
     </style>
 </head>
 <body>
@@ -382,15 +408,15 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
 
     <details class="usage-guide">
         <summary>ⓘ ¿Cómo usar el simulador? · Guía rápida</summary>
-        <div class="guide-body"><strong>1.</strong> Elige un laboratorio y mueve los controles o pulsa un escenario.
-            <strong>2.</strong> Presiona <strong>Grabar</strong> (o <strong>Manual</strong> en turbidimetría) para obtener muestras.
-            <strong>3.</strong> Selecciona un método numérico y ejecuta el análisis para visualizar el resultado.
-            Los valores son simulados y pueden incluir variaciones; los escenarios no modifican las ecuaciones.</div>
+        <div class="guide-body"><strong>1.</strong> Elige un laboratorio y establece el inicio y final del recorrido.
+            <strong>2.</strong> Pulsa <strong>Iniciar recorrido</strong> para observar el experimento y la curva de mediciones simultáneamente.
+            <strong>3.</strong> Lee la conclusión del recorrido y luego aplica el método numérico en la sección de análisis.
+            El registro manual y el comparador A/B son herramientas opcionales. Las mediciones son simuladas e incluyen un ruido pequeño.</div>
     </details>
     <div id="labTab" class="tab-content active">
         <div class="section-intro"><div><span class="eyebrow">LABORATORIO 01 / ÓPTICA</span>
             <h2>Atenuación de luz con sensor LDR</h2>
-            <p>Aleja la fuente luminosa y observa cómo responde el voltaje. Registra puntos y calcula valores intermedios.</p>
+            <p>Acerca o aleja la fuente luminosa y observa el cambio de voltaje mientras se construye la curva.</p>
         </div><span class="concept-chip">Distancia ↔ Voltaje</span></div>
         <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
             <small>Prueba distintas distancias</small></div><div class="scenario-actions">
@@ -441,6 +467,20 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             </div>
         </div>
 
+        <section class="experiment-summary glass-panel" id="experimentSummary-ldr" role="region" aria-label="Conclusión del recorrido ldr" hidden>
+            <div class="summary-top"><span class="eyebrow">02 · INTERPRETACIÓN DEL EXPERIMENTO</span>
+                <h3>¿Qué ocurrió durante el recorrido?</h3>
+                <p>Resumen de las mediciones simuladas del último recorrido automático.</p>
+            </div>
+            <div class="summary-metrics">
+                <div class="summary-stat"><small>Punto inicial</small><strong id="summaryStart-ldr">—</strong></div>
+                <div class="summary-stat"><small>Punto final</small><strong id="summaryEnd-ldr">—</strong></div>
+                <div class="summary-stat featured"><small>Variación final − inicial</small><strong id="summaryDelta-ldr">—</strong></div>
+            </div>
+            <p class="summary-explanation" id="summaryExplanation-ldr"></p>
+            <p class="summary-science" id="summaryScience-ldr">Voltaje y distancia · Valores con ruido simulado; explicación basada en el modelo físico.</p>
+        </section>
+
         <div class="container">
             <aside class="controls glass-panel">
                 <label>Datos (d, V) <div class="info-tooltip"><span class="icon">i</span><div class="text">Muestras discretas capturadas por el sensor. Puedes borrar, modificar o añadir puntos de calibración de forma manual.</div></div></label>
@@ -455,6 +495,8 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 <button class="btn-main" onclick="runSimulationLab()">Aplicar Algoritmo</button>
             </aside>
             <main class="visualization glass-panel">
+                <div class="numeric-heading"><div><span class="eyebrow">03 · APLICACIÓN MATEMÁTICA</span><h3>Análisis numérico del LDR</h3></div>
+                    <p id="methodDescription-ldr">Esta gráfica utiliza las muestras para interpolar, resolver la EDO o integrar según el método elegido.</p></div>
                 <div class="chart-container"><canvas id="mainChart"></canvas></div>
                 <div id="resultsLab" class="results-panel">Los datos simulados aparecerán al iniciar el recorrido.</div>
             </main>
@@ -571,6 +613,20 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
         </div>
 
 
+        <section class="experiment-summary glass-panel" id="experimentSummary-rf" role="region" aria-label="Conclusión del recorrido rf" hidden>
+            <div class="summary-top"><span class="eyebrow">02 · INTERPRETACIÓN DEL EXPERIMENTO</span>
+                <h3>¿Qué ocurrió durante el recorrido?</h3>
+                <p>Resumen de las mediciones simuladas del último recorrido automático.</p>
+            </div>
+            <div class="summary-metrics">
+                <div class="summary-stat"><small>Punto inicial</small><strong id="summaryStart-rf">—</strong></div>
+                <div class="summary-stat"><small>Punto final</small><strong id="summaryEnd-rf">—</strong></div>
+                <div class="summary-stat featured"><small>Variación final − inicial</small><strong id="summaryDelta-rf">—</strong></div>
+            </div>
+            <p class="summary-explanation" id="summaryExplanation-rf"></p>
+            <p class="summary-science" id="summaryScience-rf">Potencia y cobertura · Valores con ruido simulado; explicación basada en el modelo físico.</p>
+        </section>
+
         <div class="container">
             <aside class="controls glass-panel">
                 <textarea id="dataRF" placeholder="Datos Drive-Test (Km, dBm)"></textarea>
@@ -584,6 +640,8 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 <button class="btn-main" onclick="runTelecomSimulation()">Ejecutar Análisis RF</button>
             </aside>
             <main class="visualization glass-panel">
+                <div class="numeric-heading"><div><span class="eyebrow">03 · APLICACIÓN MATEMÁTICA</span><h3>Análisis numérico de cobertura</h3></div>
+                    <p id="methodDescription-rf">Esta gráfica combina las mediciones con las curvas y estimaciones del método seleccionado.</p></div>
                 <div class="chart-container"><canvas id="telecomChart"></canvas></div>
                 <div id="telecomResults" class="results-panel" style="border-left-color: var(--warning);">Selecciona un método. Si no hay datos grabados, se usará la teoría ideal.</div>
             </main>
@@ -687,6 +745,20 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
         </div>
 
 
+        <section class="experiment-summary glass-panel" id="experimentSummary-turbi" role="region" aria-label="Conclusión del recorrido turbi" hidden>
+            <div class="summary-top"><span class="eyebrow">02 · INTERPRETACIÓN DEL EXPERIMENTO</span>
+                <h3>¿Qué ocurrió durante el recorrido?</h3>
+                <p>Resumen de las mediciones simuladas del último recorrido automático.</p>
+            </div>
+            <div class="summary-metrics">
+                <div class="summary-stat"><small>Punto inicial</small><strong id="summaryStart-turbi">—</strong></div>
+                <div class="summary-stat"><small>Punto final</small><strong id="summaryEnd-turbi">—</strong></div>
+                <div class="summary-stat featured"><small>Variación final − inicial</small><strong id="summaryDelta-turbi">—</strong></div>
+            </div>
+            <p class="summary-explanation" id="summaryExplanation-turbi"></p>
+            <p class="summary-science" id="summaryScience-turbi">Transmisión de luz · Valores con ruido simulado; explicación basada en el modelo físico.</p>
+        </section>
+
         <div class="container">
             <aside class="controls glass-panel">
                 <textarea id="turbiData" placeholder="Datos de Calibración (NTU, V)"></textarea>
@@ -700,6 +772,8 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 <button class="btn-main" onclick="runTurbiSimulation()">Analizar Fluido</button>
             </aside>
             <main class="visualization glass-panel">
+                <div class="numeric-heading"><div><span class="eyebrow">03 · APLICACIÓN MATEMÁTICA</span><h3>Análisis numérico del turbidímetro</h3></div>
+                    <p id="methodDescription-turbi">Esta gráfica muestra la calibración o el resultado del método aplicado a las muestras.</p></div>
                 <div class="chart-container"><canvas id="turbiChart"></canvas></div>
                 <div id="turbiResults" class="results-panel">Selecciona un método para analizar las muestras del fluido.</div>
             </main>
@@ -812,9 +886,9 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
         };
         const activeSweeps = {}, liveSampleCharts = {};
         const liveSampleAxes = {
-            ldr:{x:'Distancia (cm)',y:'Voltaje (V)',min:5,max:120, yMin:0,yMax:9.5,color:'#4ee7d5'},
-            rf:{x:'Distancia (km)',y:'Potencia (dBm)',min:1,max:50,color:'#f6bc6b'},
-            turbi:{x:'Turbidez (NTU)',y:'Voltaje (V)',min:0,max:100,yMin:0,yMax:9.5,color:'#88b5ff'}
+            ldr:{x:'Distancia (cm)',y:'Voltaje (V)',xUnit:'cm',yUnit:'V',min:5,max:120, yMin:0,yMax:9.5,color:'#4ee7d5'},
+            rf:{x:'Distancia (km)',y:'Potencia (dBm)',xUnit:'km',yUnit:'dBm',min:1,max:50,color:'#f6bc6b'},
+            turbi:{x:'Turbidez (NTU)',y:'Voltaje (V)',xUnit:'NTU',yUnit:'V',min:0,max:100,yMin:0,yMax:9.5,color:'#88b5ff'}
         };
         function syncLiveChart(type) {
             const cfg = sweepTypes[type], axes = liveSampleAxes[type], canvas = document.getElementById('liveChart-' + type);
@@ -823,6 +897,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             if (!liveSampleCharts[type]) {
                 liveSampleCharts[type] = new Chart(canvas.getContext('2d'), {
                     type:'scatter',
+                    plugins:[livePositionPlugin],
                     data:{datasets:[{
                         label:'Muestras simuladas',data:[],showLine:true,pointRadius:3.4,
                         pointHoverRadius:6,borderWidth:2.5,backgroundColor:axes.color,borderColor:axes.color,
@@ -842,7 +917,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                         plugins:{
                             legend:{display:false},
                             tooltip:{backgroundColor:'rgba(5,24,40,.96)',padding:10,
-                                callbacks:{label(ctx){return ctx.parsed.x.toFixed(2)+' → '+ctx.parsed.y.toFixed(2);}}}
+                                callbacks:{label(ctx){return ctx.parsed.x.toFixed(2)+' '+axes.xUnit+' → '+ctx.parsed.y.toFixed(2)+' '+axes.yUnit;}}}
                         }
                     }
                 });
@@ -850,8 +925,116 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             const sampleCount = document.getElementById('liveCount-' + type);
             if (sampleCount) sampleCount.textContent = samples.length + ' puntos capturados';
             liveSampleCharts[type].data.datasets[0].data = samples;
+            liveSampleCharts[type].$cursorPosition = Number(document.getElementById(cfg.slider).value);
             liveSampleCharts[type].update('none');
         }
+
+        // Marcador de posición del experimento; no añade puntos ni altera cálculos.
+        const livePositionPlugin = {
+            id:'livePositionMarker',
+            afterDatasetsDraw(chart) {
+                const value = chart.$cursorPosition;
+                if (!Number.isFinite(value) || !chart.chartArea || !chart.scales.x) return;
+                const px = chart.scales.x.getPixelForValue(value), bounds = chart.chartArea;
+                if (px < bounds.left || px > bounds.right) return;
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();ctx.setLineDash([5,4]);ctx.lineWidth = 1.8;
+                ctx.strokeStyle = 'rgba(252,199,106,.87)';
+                ctx.moveTo(px,bounds.top);ctx.lineTo(px,bounds.bottom);ctx.stroke();
+                ctx.setLineDash([]);
+                const points = chart.data.datasets[0] && chart.data.datasets[0].data;
+                if (points && points.length) {
+                    const nearest = points.reduce((a,b) =>
+                        Math.abs(a.x-value) < Math.abs(b.x-value) ? a : b);
+                    const py = chart.scales.y.getPixelForValue(nearest.y);
+                    if (Number.isFinite(py) && py >= bounds.top && py <= bounds.bottom) {
+                        ctx.beginPath();ctx.arc(chart.scales.x.getPixelForValue(nearest.x),py,6,0,Math.PI*2);
+                        ctx.fillStyle = 'rgba(251,190,105,.22)';ctx.fill();
+                        ctx.beginPath();ctx.arc(chart.scales.x.getPixelForValue(nearest.x),py,3.2,0,Math.PI*2);
+                        ctx.fillStyle = '#ffcf83';ctx.fill();
+                    }
+                }
+                ctx.restore();
+            }
+        };
+        function updateLiveCursor(type, value) {
+            const chart = liveSampleCharts[type];
+            if (!chart || !Number.isFinite(value)) return;
+            chart.$cursorPosition = value;
+            chart.draw();
+        }
+
+        // Explicaciones comprensibles, sin modificar los algoritmos numéricos.
+        const methodExplanations = {
+            ldr:{
+                lagrange:'Lagrange estima el voltaje en una distancia intermedia usando los puntos capturados.',
+                rk4:'Runge-Kutta 4 construye una solución numérica de la ecuación diferencial del sensor.',
+                simpson:'Simpson 1/3 aproxima el área bajo la curva de voltaje frente a distancia.'
+            },
+            rf:{
+                lagrange:'Lagrange interpola la potencia recibida en un punto de la ruta que no fue muestreado.',
+                nr:'Newton-Raphson estima dónde se alcanza el umbral crítico de cobertura.',
+                rk4:'Runge-Kutta 4 integra el modelo diferencial de pérdida de potencia.',
+                simpson:'Simpson 1/3 aproxima la integral de la potencia expresada en dBm a lo largo de la ruta.'
+            },
+            turbi:{
+                lagrange:'Lagrange genera una curva de calibración a partir de las muestras del sensor.',
+                nr:'Newton-Raphson estima la turbidez asociada al voltaje de alarma.',
+                rk4:'Runge-Kutta 4 aproxima la solución de la ecuación diferencial de Beer-Lambert.',
+                simpson:'Simpson 1/3 aproxima el área bajo la curva voltaje–turbidez.'
+            }
+        };
+        function updateMethodDescription(type) {
+            const ids = {ldr:'methodSelect',rf:'telecomMethod',turbi:'turbiMethod'};
+            const method = document.getElementById(ids[type]).value;
+            document.getElementById('methodDescription-' + type).textContent =
+                methodExplanations[type][method] || 'Se muestran los datos y el resultado del método seleccionado.';
+        }
+        function clearExperimentSummary(type) {
+            const panel = document.getElementById('experimentSummary-' + type);
+            if (panel) panel.hidden = true;
+        }
+        function renderExperimentSummary(type, samples, parameters) {
+            if (!Array.isArray(samples) || samples.length < 2) return;
+            const first = samples[0], last = samples[samples.length-1];
+            if (![first.x,first.y,last.x,last.y].every(Number.isFinite)) return;
+            const xUnit = sweepTypes[type].unit, yUnit = type === 'rf' ? 'dBm' : 'V';
+            const dx = last.x - first.x, dy = last.y - first.y;
+            const pct = first.y !== 0 ? dy/Math.abs(first.y)*100 : null;
+            const signed = dy < 0 ? '−' : '+';
+            const change = signed + Math.abs(dy).toFixed(2) + (type === 'rf' ? ' dB' : ' V');
+            const percentLabel = type === 'rf' || !Number.isFinite(pct) ? '' :
+                ' (' + (pct < 0 ? '−' : '+') + Math.abs(pct).toFixed(1) + ' %)';
+            document.getElementById('summaryStart-' + type).textContent =
+                first.x.toFixed(1) + ' ' + xUnit + ' · ' + first.y.toFixed(2) + ' ' + yUnit;
+            document.getElementById('summaryEnd-' + type).textContent =
+                last.x.toFixed(1) + ' ' + xUnit + ' · ' + last.y.toFixed(2) + ' ' + yUnit;
+            document.getElementById('summaryDelta-' + type).textContent = change + percentLabel;
+            let explanation, science;
+            if (type === 'ldr') {
+                explanation = dx < 0
+                    ? 'La linterna se acercó al sensor. Al disminuir la distancia, el modelo predice mayor iluminación y, por ello, mayor voltaje de salida.'
+                    : 'La linterna se alejó del sensor. Al aumentar la distancia, el modelo predice menor iluminación y menor voltaje de salida.';
+                science = 'Modelo óptico y respuesta del LDR. El porcentaje compara el voltaje final con el inicial; las lecturas incluyen ruido simulado.';
+            } else if (type === 'rf') {
+                const density = parameters && Number.isFinite(parameters.urban) ? parameters.urban.toFixed(0) : '0';
+                explanation = dx > 0
+                    ? 'El receptor se alejó de la antena. La pérdida de trayectoria aumenta con la distancia y la potencia recibida suele disminuir.'
+                    : 'El receptor se acercó a la antena. Al reducirse la pérdida de trayectoria, la potencia recibida suele aumentar.';
+                explanation += ' Se mantuvo la densidad urbana en ' + density + ' %.';
+                science = 'Modelo de propagación con atenuación urbana. La diferencia entre valores en dBm se expresa en dB; no se interpreta como porcentaje lineal.';
+            } else {
+                explanation = dx > 0
+                    ? 'El agua se volvió más turbia. Según Beer-Lambert, las partículas atenúan más luz y el sensor registra menor voltaje.'
+                    : 'El agua se volvió más clara. Según Beer-Lambert, disminuye la atenuación y llega más luz al sensor.';
+                science = 'Ley de Beer-Lambert. El porcentaje expresa el cambio de voltaje respecto a la primera muestra, con un pequeño ruido simulado.';
+            }
+            document.getElementById('summaryExplanation-' + type).textContent = explanation;
+            document.getElementById('summaryScience-' + type).textContent = science;
+            document.getElementById('experimentSummary-' + type).hidden = false;
+        }
+
         function showSweepStatus(type, message, percentage) {
             document.getElementById('sweepStatus-' + type).textContent = message;
             document.getElementById('sweepBar-' + type).style.width = percentage + '%';
@@ -873,13 +1056,16 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             delete activeSweeps[type];
             document.getElementById('autoButton-' + type).textContent = '▶ Iniciar recorrido';
             if (reason === 'clear') {
+                clearExperimentSummary(type);
                 showSweepStatus(type, 'Datos eliminados. Puedes iniciar otro recorrido.', 0);
             } else {
                 const count = parseData(sweepTypes[type].data).length;
                 showSweepStatus(type, reason === 'complete'
-                    ? '✓ Recorrido completo: '+count+' muestras. Ya puedes aplicar el método numérico.'
+                    ? '✓ Recorrido completo: '+count+' muestras. Consulta la conclusión debajo del experimento.'
                     : 'Recorrido detenido: '+count+' muestras conservadas.', reason === 'complete' ? 100 : current.lastPercent);
                 sweepTypes[type].analyze();
+                if (reason === 'complete') renderExperimentSummary(type, current.samples, current.parameters);
+                else clearExperimentSummary(type);
             }
         }
         function startAutomaticSweep(type) {
@@ -918,11 +1104,12 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             locked.forEach(el => {el.disabled = true;});
             const area = document.getElementById(cfg.data);
             area.value = '';
+            clearExperimentSummary(type);
             cfg.analyze();
             document.getElementById('autoButton-' + type).textContent = '■ Detener recorrido';
             const total = 20; // 20 intervalos = 21 muestras, incluyendo los extremos
             let startTimestamp = null, next = 0, lastVisual = -Infinity;
-            const state = {raf:0,locked,lastPercent:0};
+            const state = {raf:0,locked,lastPercent:0,samples:[],parameters};
             activeSweeps[type] = state;
             function animate(timestamp) {
                 if (activeSweeps[type] !== state) return;
@@ -938,7 +1125,9 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 while (next <= total && elapsed + 1e-9 >= next / total) {
                     const x = initial + (final - initial)*next/total;
                     const y = cfg.sample(x,parameters);
-                    area.value += (area.value ? '\n' : '') + x.toFixed(2) + ', ' + y.toFixed(2);
+                    const recorded = {x:Number(x.toFixed(2)),y:Number(y.toFixed(2))};
+                    state.samples.push(recorded);
+                    area.value += (area.value ? '\n' : '') + recorded.x.toFixed(2) + ', ' + recorded.y.toFixed(2);
                     next++;
                     changed = true;
                 }
@@ -1024,8 +1213,10 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             writeTelemetry('ldrVoltageMetric', voltage.toFixed(2) + ' V');
             writeTelemetry('ldrScaleMetric', (relative * 100).toFixed(1) + ' %');
             fillTelemetry('ldrVoltageBar', relative * 100);
+            updateLiveCursor('ldr',d);
         }
         function startRecordingLab() {
+            clearExperimentSummary('ldr');
             const durationSec = parseInt(document.getElementById('recordTimeLab').value), btn = document.getElementById('btnRecordLab');
             let elapsed = 0; btn.disabled = true; document.getElementById('dataInput').value = ""; 
             recordingTimerLab = setInterval(() => {
@@ -1036,7 +1227,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerLab); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
             }, 500);
         }
-        function clearDataLab() { stopAutomaticSweep('ldr', 'clear'); stopManualRecorder('ldr'); document.getElementById('dataInput').value = ""; showSweepStatus('ldr', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runSimulationLab(); }
+        function clearDataLab() { stopAutomaticSweep('ldr', 'clear'); clearExperimentSummary('ldr'); stopManualRecorder('ldr'); document.getElementById('dataInput').value = ""; showSweepStatus('ldr', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runSimulationLab(); }
         
         function toggleInputsLab() {
             const m = document.getElementById('methodSelect').value, c = document.getElementById('dynamicInputsLab');
@@ -1083,6 +1274,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Distancia (cm)'; opt.scales.y.title.text = 'Voltaje (V)'; opt.scales.y.min = 0;
             myChart = new Chart(document.getElementById('mainChart').getContext('2d'), { type: 'scatter', data: { datasets }, options: opt});
             syncLiveChart('ldr');
+            updateMethodDescription('ldr');
         }
 
         // --- 2. RF (DRIVE TEST) ---
@@ -1111,8 +1303,10 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             const stage = document.querySelector('.telecom-visual');
             const receiver = document.getElementById('rfReceiver');
             if (receiver && stage) receiver.style.left = (63 + ((d - 1) / 49) * Math.max(10, stage.getBoundingClientRect().width - 145)) + 'px';
+            updateLiveCursor('rf',d);
         }
         function startRecordingRF() {
+            clearExperimentSummary('rf');
             const durationSec = parseInt(document.getElementById('timeRF').value), btn = document.getElementById('btnRecordRF');
             const ptx = parseFloat(document.getElementById('txPower').value), g = parseFloat(document.getElementById('txGain').value), f = parseFloat(document.getElementById('freqVal').value);
             let elapsed = 0; btn.disabled = true; document.getElementById('dataRF').value = ""; 
@@ -1125,7 +1319,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerRF); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
             }, 500);
         }
-        function clearRF() { stopAutomaticSweep('rf', 'clear'); stopManualRecorder('rf'); document.getElementById('dataRF').value = ""; showSweepStatus('rf', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTelecomSimulation(); }
+        function clearRF() { stopAutomaticSweep('rf', 'clear'); clearExperimentSummary('rf'); stopManualRecorder('rf'); document.getElementById('dataRF').value = ""; showSweepStatus('rf', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTelecomSimulation(); }
 
         function toggleInputsTelecom() {
             const m = document.getElementById('telecomMethod').value, c = document.getElementById('dynamicInputsTelecom');
@@ -1205,6 +1399,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             telecomChartObj = new Chart(document.getElementById('telecomChart').getContext('2d'), { type: 'scatter', data: { datasets: ds }, options: opt});
             document.getElementById('telecomResults').innerHTML = resHtml;
             syncLiveChart('rf');
+            updateMethodDescription('rf');
         }
 
         // --- 3. TURBIDÍMETRO ---
@@ -1223,8 +1418,10 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             writeTelemetry('turbiVoltageMetric', voltage.toFixed(2) + ' V');
             writeTelemetry('turbiRelativeMetric', (relative * 100).toFixed(1) + ' %');
             fillTelemetry('turbiVoltageBar', relative * 100);
+            updateLiveCursor('turbi',ntu);
         }
         function startRecordingTurbi() {
+            clearExperimentSummary('turbi');
             const durationSec = parseInt(document.getElementById('turbiRecordTime').value), btn = document.getElementById('btnRecordTurbi');
             let elapsed = 0; btn.disabled = true; document.getElementById('turbiData').value = ""; 
             recordingTimerTurbi = setInterval(() => {
@@ -1235,8 +1432,8 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerTurbi); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
             }, 500);
         }
-        function takeTurbiSample() { const ntu = document.getElementById('turbiSlider').value, txt = document.getElementById('turbiData'); txt.value += (txt.value ? "\n" : "") + `${ntu}, ${getTurbiVolt(ntu).toFixed(2)}`; runTurbiSimulation(); }
-        function clearTurbi() { stopAutomaticSweep('turbi', 'clear'); stopManualRecorder('turbi'); document.getElementById('turbiData').value = ""; showSweepStatus('turbi', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTurbiSimulation(); }
+        function takeTurbiSample() { clearExperimentSummary('turbi'); const ntu = document.getElementById('turbiSlider').value, txt = document.getElementById('turbiData'); txt.value += (txt.value ? "\n" : "") + `${ntu}, ${getTurbiVolt(ntu).toFixed(2)}`; runTurbiSimulation(); }
+        function clearTurbi() { stopAutomaticSweep('turbi', 'clear'); clearExperimentSummary('turbi'); stopManualRecorder('turbi'); document.getElementById('turbiData').value = ""; showSweepStatus('turbi', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTurbiSimulation(); }
         
         function toggleInputsTurbi() {
             const m = document.getElementById('turbiMethod').value, c = document.getElementById('turbiDynamic');
@@ -1302,6 +1499,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             turbiChartObj = new Chart(document.getElementById('turbiChart').getContext('2d'), { type: 'scatter', data: { datasets }, options: opt });
             document.getElementById('turbiResults').innerHTML = htmlRes;
             syncLiveChart('turbi');
+            updateMethodDescription('turbi');
         }
 
 
