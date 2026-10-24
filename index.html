@@ -381,6 +381,52 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
 @media(max-width:850px){.numeric-heading{flex-direction:column}.numeric-heading p{flex:auto;max-width:none}}
 @media(max-width:650px){.summary-metrics{grid-template-columns:1fr}.summary-stat{padding:10px 12px}.summary-explanation{font-size:.79rem}.demo-plot-head::after{top:auto;bottom:0}}
 
+
+/* Etapa final: modo de presentación, centrado en el recorrido y los resultados. */
+.presentation-toggle{border:1px solid rgba(114,246,213,.35)!important;background:rgba(50,194,165,.13)!important;color:#b7ffeb!important;box-shadow:none!important;padding:9px 14px!important;font-size:.78rem!important;white-space:nowrap}
+.presentation-toggle:hover,.presentation-toggle[aria-pressed="true"]{background:linear-gradient(110deg,rgba(64,221,182,.28),rgba(75,123,226,.16))!important;border-color:rgba(126,255,216,.65)!important}
+.presentation-toolbar[hidden],.presentation-steps[hidden]{display:none!important}
+.presentation-toolbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 clamp(16px,3.4vw,52px);padding:11px 14px;border-radius:0 0 17px 17px;border-top:0;background:rgba(6,24,38,.97);box-shadow:0 12px 34px rgba(0,0,0,.3)}
+.presentation-identity{display:flex;flex-direction:column;gap:2px;min-width:160px}
+.presentation-tag{font-size:.59rem;font-weight:850;letter-spacing:.18em;color:#72f1d1}
+.presentation-identity strong{font:700 .85rem/1.3 'Space Grotesk',sans-serif;color:#fff}
+.presentation-lab-picker{margin:0;display:flex;align-items:center;gap:8px;color:#badbdc;font-size:.7rem;white-space:nowrap}
+.presentation-lab-picker select{width:auto;max-width:210px;min-width:145px;padding:9px 11px;background:#0b2436;font-size:.75rem;font-weight:750}
+.presentation-steps{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-left:auto}
+button.presentation-step,button.presentation-utility{box-shadow:none!important;border-radius:9px!important;font-size:.72rem!important;padding:9px 11px!important;min-height:38px}
+button.presentation-step{background:rgba(119,167,191,.09);border:1px solid rgba(159,203,214,.16);color:#afc9d1}
+button.presentation-step:hover,button.presentation-step.active{background:rgba(78,224,195,.16);border-color:rgba(93,240,207,.44);color:#b7fff0}
+button.presentation-utility{background:rgba(106,134,160,.14);border:1px solid rgba(147,183,196,.22);color:#d7eaef}
+button.presentation-exit{background:rgba(246,114,112,.12);border-color:rgba(247,134,132,.34);color:#ffceca}
+.presentation-toolbar-note{width:100%;margin:0;color:#a1bfc9;font-size:.67rem;line-height:1.5}
+body.presentation-mode .tab-container,body.presentation-mode .usage-guide,body.presentation-mode .scenario-strip,
+body.presentation-mode .compare-panel,body.presentation-mode .telemetry-grid,
+body.presentation-mode .manual-record,body.presentation-mode .btn-danger,
+body.presentation-mode .controls>textarea,body.presentation-mode #labTab .controls>label,
+body.presentation-mode .section-intro .concept-chip{display:none!important}
+body.presentation-mode header{padding-top:9px;padding-bottom:9px}
+body.presentation-mode header .live-status{display:none}
+body.presentation-mode .tab-content{padding-top:16px;gap:13px}
+body.presentation-mode .section-intro p{font-size:.79rem}
+body.presentation-mode .auto-run-panel{padding:15px 20px}
+body.presentation-mode .auto-run-heading p{margin-bottom:10px}
+body.presentation-mode .virtual-lab{padding:20px}
+body.presentation-mode #labTab .lab-controls,body.presentation-mode #turbiTab .lab-controls{display:none}
+body.presentation-mode #fieldTab .lab-controls{margin-bottom:16px;padding:10px;justify-content:center}
+body.presentation-mode #fieldTab .lab-controls>div:first-child>div:first-child{display:none}
+body.presentation-mode #fieldTab .lab-controls>div:first-child{border-right:0!important;padding-right:0!important}
+body.presentation-mode .demo-plot{min-height:295px}
+body.presentation-mode .demo-plot-chart{min-height:220px}
+body.presentation-mode .container{gap:14px}
+body.presentation-mode .controls{width:260px;padding:18px}
+body.presentation-mode .controls>select{margin-top:0!important}
+body.presentation-mode .visualization{min-height:355px}
+body.presentation-mode .chart-container{min-height:290px}
+body.presentation-mode .auto-run-panel,body.presentation-mode .experiment-summary,body.presentation-mode .container,body.presentation-mode .analysis-container{scroll-margin-top:145px}
+@media(max-width:1170px){.presentation-toolbar{gap:8px}.presentation-steps{margin-left:0}.presentation-identity{min-width:130px}button.presentation-step{padding:8px!important}}
+@media(max-width:850px){body.presentation-mode .container{flex-direction:column}body.presentation-mode .controls{width:100%}body.presentation-mode .demo-plot{min-height:230px}body.presentation-mode .demo-plot-chart{min-height:170px}}
+@media(max-width:700px){.presentation-toolbar{margin:0 16px;padding:11px}.presentation-identity{width:100%}.presentation-lab-picker{flex:1}.presentation-lab-picker select{max-width:100%;flex:1}.presentation-steps{width:100%;justify-content:space-between}.presentation-steps button{flex:1}.presentation-toolbar-note{display:none}body.presentation-mode .header-meta{margin-left:0}body.presentation-mode .header-meta .edition{display:none}body.presentation-mode .auto-run-panel{padding:14px}body.presentation-mode .virtual-lab{padding:13px}body.presentation-mode .demo-plot{min-height:215px}body.presentation-mode .auto-run-panel,body.presentation-mode .experiment-summary,body.presentation-mode .container,body.presentation-mode .analysis-container{scroll-margin-top:205px}}
+
     </style>
 </head>
 <body>
@@ -396,7 +442,8 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             <div><span class="brand-kicker">Laboratorio virtual · UNMSM</span><h1>Análisis Numérico</h1></div>
         </div>
         <div class="header-meta"><span class="edition">Ingeniería de Telecomunicaciones · Versión de Ismael</span>
-            <span class="live-status">SIMULACIÓN ACTIVA</span></div>
+            <span class="live-status">SIMULACIÓN ACTIVA</span>
+            <button type="button" class="presentation-toggle" id="presentationToggle" aria-pressed="false" onclick="togglePresentationMode()">▣ Modo presentación</button></div>
     </header>
 
     <div class="tab-container">
@@ -404,6 +451,27 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
         <button class="tab-btn" onclick="openTab(event, 'fieldTab')">📡 RF / Drive-Test</button>
         <button class="tab-btn" onclick="openTab(event, 'turbiTab')">💧 Turbidímetro</button>
         <button class="tab-btn" onclick="openTab(event, 'compTab')">📊 Matemática</button>
+    </div>
+
+
+    <div class="presentation-toolbar glass-panel" id="presentationToolbar" role="region" aria-label="Herramientas para la exposición" hidden>
+        <div class="presentation-identity"><span class="presentation-tag">● MODO PRESENTACIÓN</span><strong id="presentationTitle">Óptica LDR</strong></div>
+        <label class="presentation-lab-picker" for="presentationLabSelect">Tema
+            <select id="presentationLabSelect" onchange="setPresentationLab(this.value)">
+                <option value="labTab">01 · Óptica LDR</option>
+                <option value="fieldTab">02 · Radiofrecuencia</option>
+                <option value="turbiTab">03 · Turbidimetría</option>
+                <option value="compTab">04 · Fundamentos</option>
+            </select>
+        </label>
+        <div class="presentation-steps" id="presentationSteps" role="group" aria-label="Ir a etapa de exposición">
+            <button type="button" class="presentation-step active" data-presentation-step="experiment" aria-pressed="true" onclick="navigatePresentation('experiment')">01 · Experimento</button>
+            <button type="button" class="presentation-step" data-presentation-step="summary" aria-pressed="false" onclick="navigatePresentation('summary')">02 · Conclusión</button>
+            <button type="button" class="presentation-step" data-presentation-step="analysis" aria-pressed="false" onclick="navigatePresentation('analysis')">03 · Matemática</button>
+        </div>
+        <button type="button" class="presentation-utility" id="presentationFullscreen" onclick="togglePresentationFullscreen()">⛶ Pantalla completa</button>
+        <button type="button" class="presentation-utility presentation-exit" onclick="togglePresentationMode(false)">✕ Salir</button>
+        <p class="presentation-toolbar-note" id="presentationHint">Sigue las etapas de izquierda a derecha. Usa ← → para avanzar y Esc para salir.</p>
     </div>
 
     <details class="usage-guide">
@@ -1156,6 +1224,7 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
             if(tabName === 'fieldTab') runTelecomSimulation();
             if(tabName === 'turbiTab') runTurbiSimulation();
             if(tabName === 'compTab' && window.MathJax) MathJax.typesetPromise();
+            if (document.body.classList.contains('presentation-mode')) updatePresentationToolbar();
         }
 
         // --- MATEMÁTICAS PROTEGIDAS ---
@@ -1700,6 +1769,118 @@ button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient
                 }
             });
         }
+
+
+        // Presentación guiada: cambia únicamente la interfaz y la navegación.
+        const presentationLabels = {
+            labTab:'Óptica LDR · Luz y voltaje',
+            fieldTab:'Radiofrecuencia · Cobertura',
+            turbiTab:'Turbidimetría · Calidad del agua',
+            compTab:'Fundamentos matemáticos'
+        };
+        const presentationTypes = {labTab:'ldr',fieldTab:'rf',turbiTab:'turbi'};
+        const presentationStages = ['experiment','summary','analysis'];
+        let presentationStage = 'experiment';
+        function currentPresentationTab() {
+            return document.querySelector('.tab-content.active')?.id || 'labTab';
+        }
+        function updatePresentationToolbar() {
+            const tab = currentPresentationTab();
+            document.getElementById('presentationLabSelect').value = tab;
+            document.getElementById('presentationTitle').textContent = presentationLabels[tab];
+            document.getElementById('presentationSteps').hidden = tab === 'compTab';
+            document.querySelectorAll('[data-presentation-step]').forEach(button => {
+                const selected = button.dataset.presentationStep === presentationStage;
+                button.classList.toggle('active',selected);
+                button.setAttribute('aria-pressed',String(selected));
+            });
+            const fullscreen = document.getElementById('presentationFullscreen');
+            fullscreen.textContent = document.fullscreenElement ? '⤢ Salir de pantalla completa' : '⛶ Pantalla completa';
+            const hint = document.getElementById('presentationHint');
+            hint.textContent = tab === 'compTab'
+                ? 'Repasa los modelos físicos y las ecuaciones que respaldan los experimentos. Esc para salir.'
+                : 'Sigue las etapas de izquierda a derecha · ← → cambia de etapa · Esc sale de este modo.';
+        }
+        function togglePresentationMode(force) {
+            const on = typeof force === 'boolean' ? force : !document.body.classList.contains('presentation-mode');
+            document.body.classList.toggle('presentation-mode',on);
+            const button = document.getElementById('presentationToggle');
+            button.setAttribute('aria-pressed',String(on));
+            button.textContent = on ? '✓ Presentando' : '▣ Modo presentación';
+            document.getElementById('presentationToolbar').hidden = !on;
+            if (!on && document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+            presentationStage = 'experiment';
+            updatePresentationToolbar();
+            if (on) navigatePresentation('experiment');
+            else window.scrollTo({top:0,behavior:'smooth'});
+        }
+        function setPresentationLab(tabName) {
+            const tabs = ['labTab','fieldTab','turbiTab','compTab'];
+            const index = tabs.indexOf(tabName);
+            if (index === -1) return;
+            document.querySelectorAll('.tab-container .tab-btn')[index].click();
+            presentationStage = 'experiment';
+            updatePresentationToolbar();
+            if (tabName === 'compTab') {
+                document.querySelector('#compTab .section-intro').scrollIntoView({behavior:'smooth',block:'start'});
+            } else navigatePresentation('experiment');
+        }
+        function navigatePresentation(stage) {
+            const tab = currentPresentationTab(), panel = document.getElementById(tab);
+            if (!panel || !presentationStages.includes(stage)) return;
+            if (tab === 'compTab') {
+                panel.querySelector('.section-intro')?.scrollIntoView({behavior:'smooth',block:'start'});
+                return;
+            }
+            const type = presentationTypes[tab];
+            let target = stage === 'experiment' ? panel.querySelector('.auto-run-panel')
+                : stage === 'summary' ? document.getElementById('experimentSummary-' + type)
+                : panel.querySelector('.container');
+            if (stage === 'summary' && target.hidden) {
+                target = panel.querySelector('.auto-run-panel');
+                document.getElementById('presentationHint').textContent =
+                    'Primero inicia y completa un recorrido para generar la conclusión de este experimento.';
+            }
+            presentationStage = stage;
+            updatePresentationToolbar();
+            if (stage === 'summary' && document.getElementById('experimentSummary-' + type).hidden) {
+                document.getElementById('presentationHint').textContent =
+                    'Primero inicia y completa un recorrido para generar la conclusión de este experimento.';
+            }
+            target?.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+        async function togglePresentationFullscreen() {
+            try {
+                if (document.fullscreenElement) await document.exitFullscreen();
+                else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+                else document.getElementById('presentationHint').textContent =
+                    'La pantalla completa no está disponible en este navegador.';
+            } catch (error) {
+                updatePresentationToolbar();
+                document.getElementById('presentationHint').textContent =
+                    'El navegador no permitió abrir la pantalla completa. El modo presentación sigue disponible.';
+                return;
+            }
+            updatePresentationToolbar();
+        }
+        document.addEventListener('fullscreenchange',updatePresentationToolbar);
+        document.addEventListener('keydown',event => {
+            if (event.key === 'Escape' && document.body.classList.contains('presentation-mode')) {
+                togglePresentationMode(false);
+                return;
+            }
+            if (!document.body.classList.contains('presentation-mode') ||
+                event.altKey || event.ctrlKey || event.metaKey ||
+                event.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) ||
+                currentPresentationTab() === 'compTab') return;
+            if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+            const index = presentationStages.indexOf(presentationStage);
+            const next = Math.min(presentationStages.length - 1,
+                Math.max(0,index + (event.key === 'ArrowRight' ? 1 : -1)));
+            if (next !== index) { event.preventDefault(); navigatePresentation(presentationStages[next]); }
+        });
 
         // Init
         window.onload = () => { toggleInputsLab(); updateLab(); runSimulationLab(); toggleInputsTelecom(); updateRF(); runTelecomSimulation(); toggleInputsTurbi(); updateTurbi(); runTurbiSimulation(); setupInteractiveControls(); };
