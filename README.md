@@ -7,7 +7,7 @@ El proyecto incluye un **Dashboard Analítico** (Single Page Application) que pe
 
 **[ABRIR EL SIMULADOR INTERACTIVO](https://ismaelsvm.github.io/PROYECTO-FINAL-METODOS-NUMERICOS/)**
 
-Versión publicada y mantenida en el GitHub de **Ismael** (`ismaelsvm`), como base para nuevas mejoras. Proyecto original: [ItaloUNMSM/PROYECTO-FINAL-METODOS-NUMERICOS](https://github.com/ItaloUNMSM/PROYECTO-FINAL-METODOS-NUMERICOS).
+Versión publicada y mantenida en el GitHub de **Ismael** (`ismaelsvm`), como base para nuevas mejoras.
 
 ##  Laboratorios Incluidos
 1. **Óptica LDR (Escala Laboratorio):** Simulación de atenuación geométrica de luz en espacio libre.
