@@ -313,6 +313,48 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
 .compare-footnote{display:block;margin-top:10px;color:#91aabe;font-size:.69rem;line-height:1.5}
 @media(max-width:700px){.compare-panel>summary{padding:13px 15px}.compare-body{padding:14px}.compare-callout{font-size:0}.compare-callout::after{font-size:1.1rem}.compare-actions button{flex:1;min-width:100px}.compare-slots{grid-template-columns:1fr}.compare-results{grid-template-columns:1fr}.compare-chart{height:260px}}
 
+
+/* Etapa 3: barridos automáticos y lecturas que se dibujan junto al experimento */
+.auto-run-panel{
+    padding:19px clamp(16px,2.5vw,25px);border-color:rgba(71,222,196,.3);
+    background:linear-gradient(110deg,rgba(18,57,63,.94),rgba(15,31,55,.95));
+}
+.auto-run-heading h3{font:700 clamp(1.06rem,1.5vw,1.35rem)/1.2 'Space Grotesk',sans-serif;margin:5px 0 3px;color:#edfffa}
+.auto-run-heading p{color:#a9ced2;font-size:.77rem;margin:0 0 13px}
+.auto-run-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(175px,1.1fr);align-items:end;gap:10px}
+.auto-field{display:flex;flex-direction:column;align-items:stretch;gap:5px;margin:0;color:#bfeee5;font-size:.74rem}
+.auto-field input{min-width:0;min-height:41px;font-variant-numeric:tabular-nums}
+button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient(110deg,#4ee7d5,#82bfff);color:#062332;font-weight:850;box-shadow:0 3px 13px rgba(73,227,200,.18);white-space:normal}
+.sweep-status{min-height:20px;margin:12px 0 6px;color:#b8e9e2;font-size:.73rem;font-weight:650}
+.sweep-progress{height:7px;border-radius:99px;background:rgba(128,171,184,.19);overflow:hidden;border:1px solid rgba(128,184,180,.17)}
+.sweep-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#42eac0,#a5edff);transition:width .08s linear}
+.manual-record{flex:none;border:1px solid rgba(142,179,206,.23);border-radius:10px;background:rgba(12,29,47,.72);max-width:100%}
+.manual-record>summary{list-style:none;cursor:pointer;padding:11px 13px;color:#bcdbe4;font-weight:750;font-size:.74rem}
+.manual-record>summary::-webkit-details-marker{display:none}
+.manual-record[open]{width:min(100%,320px)}
+.manual-record-content{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:3px 12px 12px}
+.manual-record-content label{display:flex;align-items:flex-start;flex-direction:column;gap:4px}
+.manual-record-content label input{max-width:130px}
+.manual-record-content button{font-size:.73rem;padding:9px 10px}
+.manual-record-content small{font-size:.69rem;color:#a3b8cb}
+.live-demo-layout{width:100%;max-width:1100px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);align-items:stretch;gap:15px}
+.demo-scene{display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0;gap:12px}
+.demo-scene .simulation-area,.demo-scene .telecom-visual,.demo-scene .tank-container{width:100%;max-width:none}
+.demo-scene .readings{margin:0;font-size:.76rem;max-width:100%;text-align:center;line-height:1.6}
+.demo-plot{min-width:0;min-height:235px;display:flex;flex-direction:column;border-radius:13px;border:1px solid rgba(129,177,205,.18);background:rgba(2,15,28,.55);padding:12px}
+.demo-plot-head{display:flex;flex-direction:column;gap:2px;margin-bottom:7px}
+.demo-plot-head strong{font-size:.78rem;color:#9df5e5}
+.demo-plot-head small{font-size:.68rem;color:#90acc3}
+.live-sample-counter{font-size:.7rem;color:#7ff4da;font-weight:800}
+.demo-plot-chart{position:relative;min-height:180px;flex:1}
+.demo-plot-chart canvas{max-height:100%}
+.rf-receiver{position:absolute;bottom:1px;left:22%;width:18px;height:39px;border-radius:4px;border:2px solid #b5d4ed;background:linear-gradient(#417b94,#183d56);box-shadow:0 0 10px rgba(131,210,231,.45);z-index:5;transition:left .09s linear}
+.rf-receiver::before{content:"";position:absolute;top:7px;left:3px;width:8px;height:16px;background:rgba(135,235,246,.72);border-radius:2px}
+.rf-receiver::after{content:"";position:absolute;bottom:2px;left:6px;width:3px;height:3px;border-radius:50%;background:#a7f8ff}
+.compare-panel{opacity:.93}
+@media(max-width:850px){.live-demo-layout{grid-template-columns:1fr}.demo-plot{min-height:225px}.demo-plot-chart{min-height:165px}}
+@media(max-width:650px){.auto-run-form{grid-template-columns:repeat(2,minmax(0,1fr))}.auto-run-form .auto-run-btn{grid-column:1 / -1}.auto-run-panel{padding:15px}.demo-scene .readings{font-size:.71rem}.lab-controls{gap:9px}}
+
     </style>
 </head>
 <body>
@@ -356,39 +398,72 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             <button type="button" class="scenario-btn" data-scenario="ldr" data-value="55" onclick="applyScenario('ldr',55)">Media · 55 cm</button>
             <button type="button" class="scenario-btn" data-scenario="ldr" data-value="110" onclick="applyScenario('ldr',110)">Lejos · 110 cm</button>
         </div></div>
+        <section class="auto-run-panel glass-panel" aria-label="Simulación automática ldr">
+            <div class="auto-run-heading"><span class="eyebrow">01 · EXPERIENCIA GUIADA</span><h3>Recorrido automático de la linterna</h3><p>La linterna se moverá entre ambas distancias mientras registramos 21 puntos distribuidos uniformemente.</p></div>
+            <div class="auto-run-form">
+                <label class="auto-field">Inicio (cm)<input type="number" id="autoStart-ldr" min="5" max="120" step="0.1" value="110"></label>
+                <label class="auto-field">Final (cm)<input type="number" id="autoEnd-ldr" min="5" max="120" step="0.1" value="10"></label>
+                <label class="auto-field">Duración (s)<input type="number" id="autoDuration-ldr" min="3" max="30" step="1" value="10"></label>
+                <button type="button" class="auto-run-btn" id="autoButton-ldr" onclick="startAutomaticSweep('ldr')">▶ Iniciar recorrido</button>
+            </div>
+            <div class="sweep-status" id="sweepStatus-ldr" role="status" aria-live="polite">Configura el inicio y final, luego pulsa Iniciar recorrido.</div>
+            <div class="sweep-progress" id="sweepProgress-ldr" role="progressbar" aria-label="Avance del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="sweepBar-ldr"></i></div>
+        </section>
         <div class="virtual-lab glass-panel">
             <div class="lab-controls">
                 <div>
                     <label>Distancia (cm)
                         <div class="info-tooltip"><span class="icon">i</span><div class="text">Mayor distancia aleja la fuente de luz del sensor, simulando atenuación natural. El voltaje decae según la Ley de la Inversa del Cuadrado.</div></div>
                     </label>
-                    <input type="range" id="distSlider" min="5" max="120" value="20" oninput="updateLab()">
+                    <input type="range" id="distSlider" min="5" max="120" step="0.1" value="20" oninput="updateLab()">
                 </div>
-                <div>
-                    <label>Tiempo (s)
-                        <div class="info-tooltip"><span class="icon">i</span><div class="text">Define cuántos segundos durará la recolección de datos. Mueve el deslizador de distancia mientras corre el tiempo para generar una curva experimental rica.</div></div>
-                    </label>
-                    <input type="number" id="recordTimeLab" value="10" min="5" max="30">
-                </div>
-                <button id="btnRecordLab" onclick="startRecordingLab()">🔴 Grabar</button>
-                <button class="btn-danger" onclick="clearDataLab()">🗑️ Borrar</button>
+                <details class="manual-record"><summary>🎛️ Registro manual (opcional)</summary><div class="manual-record-content">
+                    <label>Tiempo (s)<input type="number" id="recordTimeLab" value="10" min="5" max="30"></label>
+                    <button id="btnRecordLab" onclick="startRecordingLab()">🔴 Grabar moviendo deslizador</button>
+                    <small>Mueve la distancia a mano mientras transcurre el tiempo.</small>
+                </div></details>
+                <button class="btn-danger" onclick="clearDataLab()">🗑️ Borrar datos</button>
             </div>
-            <div class="simulation-area">
+            <div class="live-demo-layout">
+                <div class="demo-scene">
+<div class="simulation-area">
                 <div class="flashlight-container" id="flashlightContainer"><div class="flashlight"></div><div class="light-beam" id="lightBeam"><span class="photon"></span><span class="photon"></span><span class="photon"></span></div></div>
                 <div class="ldr-sensor"></div>
             </div>
             <div class="readings" id="liveReadings">Distancia: 20.0 cm | Voltaje: 0.00 V</div>
-            <div class="telemetry-grid" aria-label="Indicadores del sensor LDR">
+                </div>
+                <div class="demo-plot"><div class="demo-plot-head"><strong>● Muestras en tiempo real</strong><span class="live-sample-counter" id="liveCount-ldr">0 puntos</span><small>Voltaje (V) frente a distancia (cm)</small></div><div class="demo-plot-chart"><canvas id="liveChart-ldr" role="img" aria-label="Gráfica que se construye al tomar muestras"></canvas></div></div>
+            </div>
+<div class="telemetry-grid" aria-label="Indicadores del sensor LDR">
                 <div class="telemetry-card"><span class="telemetry-label">Distancia</span><strong class="telemetry-value" id="ldrDistanceMetric">20.0 cm</strong><small class="telemetry-note">Separación entre fuente y sensor</small></div>
                 <div class="telemetry-card"><span class="telemetry-label">Voltaje medido</span><strong class="telemetry-value" id="ldrVoltageMetric">0.00 V</strong><div class="telemetry-meter"><i id="ldrVoltageBar"></i></div></div>
                 <div class="telemetry-card"><span class="telemetry-label">Escala del sensor</span><strong class="telemetry-value" id="ldrScaleMetric">0 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
             </div>
         </div>
 
+        <div class="container">
+            <aside class="controls glass-panel">
+                <label>Datos (d, V) <div class="info-tooltip"><span class="icon">i</span><div class="text">Muestras discretas capturadas por el sensor. Puedes borrar, modificar o añadir puntos de calibración de forma manual.</div></div></label>
+                <textarea id="dataInput" placeholder="Ej: 20.0, 7.26"></textarea>
+                
+                <select id="methodSelect" onchange="toggleInputsLab(); runSimulationLab();" style="margin-top:15px;">
+                    <option value="lagrange">Lagrange Local (Interpolación)</option>
+                    <option value="rk4">RK4 (EDO Logística)</option>
+                    <option value="simpson">Simpson 1/3 (Integrar)</option>
+                </select>
+                <div id="dynamicInputsLab" style="margin-top:10px;"></div>
+                <button class="btn-main" onclick="runSimulationLab()">Aplicar Algoritmo</button>
+            </aside>
+            <main class="visualization glass-panel">
+                <div class="chart-container"><canvas id="mainChart"></canvas></div>
+                <div id="resultsLab" class="results-panel">Los datos simulados aparecerán al iniciar el recorrido.</div>
+            </main>
+        </div>
+
         <details class="compare-panel glass-panel" id="comparePanel-ldr">
             <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
-                <span class="compare-head"><strong>Comparador de escenarios A/B</strong><small>Guarda dos distancias y compara los voltajes del LDR.</small></span>
-                <span class="compare-callout">Abrir comparador</span>
+                <span class="compare-head"><strong>Extra opcional · Comparador A/B</strong><small>Guarda dos distancias y compara los voltajes del LDR.</small></span>
+                <span class="compare-callout">Abrir herramienta extra</span>
             </summary>
             <div class="compare-body">
                 <div class="compare-actions">
@@ -416,24 +491,6 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 </div>
             </div>
         </details>
-        <div class="container">
-            <aside class="controls glass-panel">
-                <label>Datos (d, V) <div class="info-tooltip"><span class="icon">i</span><div class="text">Muestras discretas capturadas por el sensor. Puedes borrar, modificar o añadir puntos de calibración de forma manual.</div></div></label>
-                <textarea id="dataInput" placeholder="Ej: 20.0, 7.26"></textarea>
-                
-                <select id="methodSelect" onchange="toggleInputsLab(); runSimulationLab();" style="margin-top:15px;">
-                    <option value="lagrange">Lagrange Local (Interpolación)</option>
-                    <option value="rk4">RK4 (EDO Logística)</option>
-                    <option value="simpson">Simpson 1/3 (Integrar)</option>
-                </select>
-                <div id="dynamicInputsLab" style="margin-top:10px;"></div>
-                <button class="btn-main" onclick="runSimulationLab()">Aplicar Algoritmo</button>
-            </aside>
-            <main class="visualization glass-panel">
-                <div class="chart-container"><canvas id="mainChart"></canvas></div>
-                <div id="resultsLab" class="results-panel">Mueve la fuente de luz y graba datos experimentales.</div>
-            </main>
-        </div>
     </div>
 
     <div id="fieldTab" class="tab-content">
@@ -447,6 +504,17 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             <button type="button" class="scenario-btn" data-scenario="rf" data-value="50" onclick="applyScenario('rf',50)">Zona mixta · 50%</button>
             <button type="button" class="scenario-btn" data-scenario="rf" data-value="90" onclick="applyScenario('rf',90)">Zona densa · 90%</button>
         </div></div>
+        <section class="auto-run-panel glass-panel" aria-label="Simulación automática rf">
+            <div class="auto-run-heading"><span class="eyebrow">01 · EXPERIENCIA GUIADA</span><h3>Recorrido automático del receptor</h3><p>El receptor se alejará de la antena; la densidad urbana permanece fija durante la toma de datos.</p></div>
+            <div class="auto-run-form">
+                <label class="auto-field">Inicio (km)<input type="number" id="autoStart-rf" min="1" max="50" step="0.1" value="1"></label>
+                <label class="auto-field">Final (km)<input type="number" id="autoEnd-rf" min="1" max="50" step="0.1" value="50"></label>
+                <label class="auto-field">Duración (s)<input type="number" id="autoDuration-rf" min="3" max="30" step="1" value="10"></label>
+                <button type="button" class="auto-run-btn" id="autoButton-rf" onclick="startAutomaticSweep('rf')">▶ Iniciar recorrido</button>
+            </div>
+            <div class="sweep-status" id="sweepStatus-rf" role="status" aria-live="polite">Configura el inicio y final, luego pulsa Iniciar recorrido.</div>
+            <div class="sweep-progress" id="sweepProgress-rf" role="progressbar" aria-label="Avance del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="sweepBar-rf"></i></div>
+        </section>
         <div class="virtual-lab glass-panel">
             <h3 style="margin:0 0 5px 0; color: var(--neon-blue);">Simulación Drive-Test en Entornos Urbanos</h3>
             <div class="lab-controls">
@@ -455,7 +523,7 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                         <label>Ruta (km) 
                             <div class="info-tooltip"><span class="icon">i</span><div class="text">Simula el movimiento de un vehículo alejándose de la torre celular. A mayor distancia, la onda dispersa energía en el espacio libre.</div></div>
                         </label>
-                        <input type="range" id="distRF" min="1" max="50" value="10" oninput="updateRF()">
+                        <input type="range" id="distRF" min="1" max="50" step="0.1" value="10" oninput="updateRF()">
                     </div>
                     <div>
                         <label>Dens. Urbana (%) 
@@ -464,11 +532,12 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                         <input type="range" id="urbanSlider" min="0" max="100" value="0" oninput="updateRF()">
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 15px; align-items: flex-end;">
-                    <div><label>Tiempo(s)</label><input type="number" id="timeRF" value="10" min="5" style="width:60px;"></div>
-                    <button id="btnRecordRF" onclick="startRecordingRF()">🔴 Grabar</button>
-                    <button class="btn-danger" onclick="clearRF()">🗑️</button>
-                </div>
+                <details class="manual-record"><summary>🎛️ Registro manual (opcional)</summary><div class="manual-record-content">
+                    <label>Tiempo (s)<input type="number" id="timeRF" value="10" min="5" max="30"></label>
+                    <button id="btnRecordRF" onclick="startRecordingRF()">🔴 Grabar moviendo deslizador</button>
+                    <small>Modifica la ruta manualmente durante la grabación.</small>
+                </div></details>
+                <button class="btn-danger" onclick="clearRF()">🗑️ Borrar datos</button>
                 <div class="compact-inputs">
                     <div>
                         <label>Tx(dBm) <div class="info-tooltip"><span class="icon">i</span><div class="text">Potencia de Transmisión. Valores altos inyectan más energía bruta a la señal, extendiendo su alcance máximo antes de morir.</div></div></label>
@@ -484,13 +553,17 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                     </div>
                 </div>
             </div>
-            
-            <div class="telecom-visual">
+            <div class="live-demo-layout">
+                <div class="demo-scene">
+<div class="telecom-visual">
                 <div class="cityscape" id="cityscape"></div>
-                <div class="tower"></div><div class="rf-wave" id="rfWave"></div><div class="tower"></div>
+                <div class="tower"></div><div class="rf-wave" id="rfWave"></div><div class="rf-receiver" id="rfReceiver" aria-label="Receptor móvil"></div>
             </div>
             <div class="readings" id="rfReadings" style="color: var(--warning); text-shadow: none;">Distancia: 10.0 km | Densidad: 0% | Señal: 0 dBm</div>
-            <div class="telemetry-grid" aria-label="Indicadores del enlace de radio">
+                </div>
+                <div class="demo-plot"><div class="demo-plot-head"><strong>● Muestras en tiempo real</strong><span class="live-sample-counter" id="liveCount-rf">0 puntos</span><small>Potencia (dBm) frente a distancia (km)</small></div><div class="demo-plot-chart"><canvas id="liveChart-rf" role="img" aria-label="Gráfica que se construye al tomar muestras"></canvas></div></div>
+            </div>
+<div class="telemetry-grid" aria-label="Indicadores del enlace de radio">
                 <div class="telemetry-card rf-metric"><span class="telemetry-label">Distancia del enlace</span><strong class="telemetry-value" id="rfDistanceMetric">10.0 km</strong><small class="telemetry-note">Trayecto simulado</small></div>
                 <div class="telemetry-card rf-metric"><span class="telemetry-label">Potencia recibida</span><strong class="telemetry-value" id="rfPowerMetric">0.0 dBm</strong><div class="telemetry-meter"><i id="rfPowerBar"></i></div><small class="telemetry-note">Barra visual: −120 a −60 dBm</small></div>
                 <div class="telemetry-card rf-metric"><span class="telemetry-label">Pérdida urbana adicional</span><strong class="telemetry-value" id="rfUrbanMetric">0.0 dB</strong><small class="telemetry-note">Término de atenuación del modelo</small></div>
@@ -498,10 +571,28 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
         </div>
 
 
+        <div class="container">
+            <aside class="controls glass-panel">
+                <textarea id="dataRF" placeholder="Datos Drive-Test (Km, dBm)"></textarea>
+                <select id="telecomMethod" onchange="toggleInputsTelecom(); runTelecomSimulation();" style="margin-top:15px;">
+                    <option value="lagrange">Lagrange (Rellenar Puntos Ciegos)</option>
+                    <option value="nr">Newton-Raphson (Límite Cobertura)</option>
+                    <option value="rk4">RK4 (EDO Absorción Urbana)</option>
+                    <option value="simpson">Simpson 1/3 (Densidad Espectral)</option>
+                </select>
+                <div id="dynamicInputsTelecom" style="margin-top:10px;"></div>
+                <button class="btn-main" onclick="runTelecomSimulation()">Ejecutar Análisis RF</button>
+            </aside>
+            <main class="visualization glass-panel">
+                <div class="chart-container"><canvas id="telecomChart"></canvas></div>
+                <div id="telecomResults" class="results-panel" style="border-left-color: var(--warning);">Selecciona un método. Si no hay datos grabados, se usará la teoría ideal.</div>
+            </main>
+        </div>
+
         <details class="compare-panel glass-panel" id="comparePanel-rf">
             <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
-                <span class="compare-head"><strong>Comparador de escenarios A/B</strong><small>Contrasta densidad urbana, distancia y configuración del enlace.</small></span>
-                <span class="compare-callout">Abrir comparador</span>
+                <span class="compare-head"><strong>Extra opcional · Comparador A/B</strong><small>Contrasta densidad urbana, distancia y configuración del enlace.</small></span>
+                <span class="compare-callout">Abrir herramienta extra</span>
             </summary>
             <div class="compare-body">
                 <div class="compare-actions">
@@ -529,23 +620,6 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 </div>
             </div>
         </details>
-        <div class="container">
-            <aside class="controls glass-panel">
-                <textarea id="dataRF" placeholder="Datos Drive-Test (Km, dBm)"></textarea>
-                <select id="telecomMethod" onchange="toggleInputsTelecom(); runTelecomSimulation();" style="margin-top:15px;">
-                    <option value="lagrange">Lagrange (Rellenar Puntos Ciegos)</option>
-                    <option value="nr">Newton-Raphson (Límite Cobertura)</option>
-                    <option value="rk4">RK4 (EDO Absorción Urbana)</option>
-                    <option value="simpson">Simpson 1/3 (Densidad Espectral)</option>
-                </select>
-                <div id="dynamicInputsTelecom" style="margin-top:10px;"></div>
-                <button class="btn-main" onclick="runTelecomSimulation()">Ejecutar Análisis RF</button>
-            </aside>
-            <main class="visualization glass-panel">
-                <div class="chart-container"><canvas id="telecomChart"></canvas></div>
-                <div id="telecomResults" class="results-panel" style="border-left-color: var(--warning);">Selecciona un método. Si no hay datos grabados, se usará la teoría ideal.</div>
-            </main>
-        </div>
     </div>
 
     <div id="turbiTab" class="tab-content">
@@ -559,6 +633,17 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             <button type="button" class="scenario-btn" data-scenario="turbi" data-value="40" onclick="applyScenario('turbi',40)">Moderada · 40 NTU</button>
             <button type="button" class="scenario-btn" data-scenario="turbi" data-value="90" onclick="applyScenario('turbi',90)">Muy turbia · 90 NTU</button>
         </div></div>
+        <section class="auto-run-panel glass-panel" aria-label="Simulación automática turbi">
+            <div class="auto-run-heading"><span class="eyebrow">01 · EXPERIENCIA GUIADA</span><h3>Barrido automático de turbidez</h3><p>El agua cambiará de concentración mientras se construye la curva del sensor.</p></div>
+            <div class="auto-run-form">
+                <label class="auto-field">Inicio (NTU)<input type="number" id="autoStart-turbi" min="0" max="100" step="0.1" value="5"></label>
+                <label class="auto-field">Final (NTU)<input type="number" id="autoEnd-turbi" min="0" max="100" step="0.1" value="90"></label>
+                <label class="auto-field">Duración (s)<input type="number" id="autoDuration-turbi" min="3" max="30" step="1" value="10"></label>
+                <button type="button" class="auto-run-btn" id="autoButton-turbi" onclick="startAutomaticSweep('turbi')">▶ Iniciar recorrido</button>
+            </div>
+            <div class="sweep-status" id="sweepStatus-turbi" role="status" aria-live="polite">Configura el inicio y final, luego pulsa Iniciar recorrido.</div>
+            <div class="sweep-progress" id="sweepProgress-turbi" role="progressbar" aria-label="Avance del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="sweepBar-turbi"></i></div>
+        </section>
         <div class="virtual-lab glass-panel">
             <h3 style="margin:0 0 5px 0; color: var(--neon-blue);">Turbidímetro Industrial</h3>
             <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-muted);">Monitoreo continuo para eventos de contaminación en tuberías.</p>
@@ -568,15 +653,19 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                     <label>Concentración (NTU)
                         <div class="info-tooltip"><span class="icon">i</span><div class="text">Unidades de turbidez (Nephelometric Turbidity Units). Aumentar esto simula partículas de lodo o químicos bloqueando la luz en el agua.</div></div>
                     </label>
-                    <input type="range" id="turbiSlider" min="0" max="100" value="0" oninput="updateTurbi()">
+                    <input type="range" id="turbiSlider" min="0" max="100" step="0.1" value="0" oninput="updateTurbi()">
                 </div>
-                <div><label>Tiempo (s)</label><input type="number" id="turbiRecordTime" value="10" min="5"></div>
-                <button id="btnRecordTurbi" onclick="startRecordingTurbi()">🔴 Grabar</button>
-                <button class="btn-warning" onclick="takeTurbiSample()">💧 Manual</button>
-                <button class="btn-danger" onclick="clearTurbi()">🗑️ Drenar</button>
+                <details class="manual-record"><summary>🎛️ Registro manual (opcional)</summary><div class="manual-record-content">
+                    <label>Tiempo (s)<input type="number" id="turbiRecordTime" value="10" min="5" max="30"></label>
+                    <button id="btnRecordTurbi" onclick="startRecordingTurbi()">🔴 Grabar moviendo deslizador</button>
+                    <button class="btn-warning" id="btnTurbiSingle" onclick="takeTurbiSample()">💧 Tomar muestra puntual</button>
+                    <small>Cambia el NTU a mano o toma una muestra individual.</small>
+                </div></details>
+                <button class="btn-danger" onclick="clearTurbi()">🗑️ Borrar datos</button>
             </div>
-
-            <div class="tank-container">
+            <div class="live-demo-layout">
+                <div class="demo-scene">
+<div class="tank-container">
                 <div class="water-murkiness" id="waterMurkiness"></div>
                 <div class="turbi-laser"></div>
                 <div class="turbi-beam" id="turbiBeam"></div>
@@ -587,7 +676,10 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 </div>
             </div>
             <div class="readings" id="turbiReadings">Turbidez: 0 NTU | Sensor: 9.00 V</div>
-            <div class="telemetry-grid" aria-label="Indicadores del turbidímetro">
+                </div>
+                <div class="demo-plot"><div class="demo-plot-head"><strong>● Muestras en tiempo real</strong><span class="live-sample-counter" id="liveCount-turbi">0 puntos</span><small>Voltaje (V) frente a turbidez (NTU)</small></div><div class="demo-plot-chart"><canvas id="liveChart-turbi" role="img" aria-label="Gráfica que se construye al tomar muestras"></canvas></div></div>
+            </div>
+<div class="telemetry-grid" aria-label="Indicadores del turbidímetro">
                 <div class="telemetry-card turbi-metric"><span class="telemetry-label">Concentración</span><strong class="telemetry-value" id="turbiNtuMetric">0 NTU</strong><small class="telemetry-note">Nivel de turbidez simulado</small></div>
                 <div class="telemetry-card turbi-metric"><span class="telemetry-label">Voltaje del sensor</span><strong class="telemetry-value" id="turbiVoltageMetric">9.00 V</strong><div class="telemetry-meter"><i id="turbiVoltageBar"></i></div></div>
                 <div class="telemetry-card turbi-metric"><span class="telemetry-label">Señal relativa</span><strong class="telemetry-value" id="turbiRelativeMetric">100 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
@@ -595,10 +687,28 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
         </div>
 
 
+        <div class="container">
+            <aside class="controls glass-panel">
+                <textarea id="turbiData" placeholder="Datos de Calibración (NTU, V)"></textarea>
+                <select id="turbiMethod" onchange="toggleInputsTurbi(); runTurbiSimulation();" style="margin-top:15px;">
+                    <option value="lagrange">Lagrange (Calibración Suave)</option>
+                    <option value="nr">Newton-Raphson (Alarma Crítica)</option>
+                    <option value="rk4">RK4 (EDO de Absorción)</option>
+                    <option value="simpson">Simpson 1/3 (Opacidad Total)</option>
+                </select>
+                <div id="turbiDynamic" style="margin-top:10px;"></div>
+                <button class="btn-main" onclick="runTurbiSimulation()">Analizar Fluido</button>
+            </aside>
+            <main class="visualization glass-panel">
+                <div class="chart-container"><canvas id="turbiChart"></canvas></div>
+                <div id="turbiResults" class="results-panel">Selecciona un método para analizar las muestras del fluido.</div>
+            </main>
+        </div>
+
         <details class="compare-panel glass-panel" id="comparePanel-turbi">
             <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
-                <span class="compare-head"><strong>Comparador de escenarios A/B</strong><small>Compara dos concentraciones y sus voltajes de salida.</small></span>
-                <span class="compare-callout">Abrir comparador</span>
+                <span class="compare-head"><strong>Extra opcional · Comparador A/B</strong><small>Compara dos concentraciones y sus voltajes de salida.</small></span>
+                <span class="compare-callout">Abrir herramienta extra</span>
             </summary>
             <div class="compare-body">
                 <div class="compare-actions">
@@ -626,23 +736,6 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 </div>
             </div>
         </details>
-        <div class="container">
-            <aside class="controls glass-panel">
-                <textarea id="turbiData" placeholder="Datos de Calibración (NTU, V)"></textarea>
-                <select id="turbiMethod" onchange="toggleInputsTurbi(); runTurbiSimulation();" style="margin-top:15px;">
-                    <option value="lagrange">Lagrange (Calibración Suave)</option>
-                    <option value="nr">Newton-Raphson (Alarma Crítica)</option>
-                    <option value="rk4">RK4 (EDO de Absorción)</option>
-                    <option value="simpson">Simpson 1/3 (Opacidad Total)</option>
-                </select>
-                <div id="turbiDynamic" style="margin-top:10px;"></div>
-                <button class="btn-main" onclick="runTurbiSimulation()">Analizar Fluido</button>
-            </aside>
-            <main class="visualization glass-panel">
-                <div class="chart-container"><canvas id="turbiChart"></canvas></div>
-                <div id="turbiResults" class="results-panel">Selecciona un método para analizar las muestras del fluido.</div>
-            </main>
-        </div>
     </div>
 
     <div id="compTab" class="tab-content">
@@ -703,6 +796,167 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
         let myChart = null, telecomChartObj = null, turbiChartObj = null;
         let recordingTimerLab = null, recordingTimerTurbi = null, recordingTimerRF = null;
 
+
+        // Adquisición guiada: 21 muestras espaciales, independientemente de la tasa de imágenes.
+        const sweepTypes = {
+            ldr:{slider:'distSlider', data:'dataInput', min:5, max:120, unit:'cm',
+                sample:(x) => calculateVirtualVoltage(x), visualize:() => updateLab(),
+                analyze:() => runSimulationLab(), manual:'btnRecordLab', fixed:[]},
+            rf:{slider:'distRF', data:'dataRF', min:1, max:50, unit:'km',
+                sample:(x, p) => getRFPower(x,p.urban,p.ptx,p.g,p.f),
+                visualize:() => updateRF(), analyze:() => runTelecomSimulation(),
+                manual:'btnRecordRF', fixed:['urbanSlider','txPower','txGain','freqVal']},
+            turbi:{slider:'turbiSlider', data:'turbiData', min:0, max:100, unit:'NTU',
+                sample:(x) => getTurbiVolt(x), visualize:() => updateTurbi(),
+                analyze:() => runTurbiSimulation(), manual:'btnRecordTurbi', fixed:[]}
+        };
+        const activeSweeps = {}, liveSampleCharts = {};
+        const liveSampleAxes = {
+            ldr:{x:'Distancia (cm)',y:'Voltaje (V)',min:5,max:120, yMin:0,yMax:9.5,color:'#4ee7d5'},
+            rf:{x:'Distancia (km)',y:'Potencia (dBm)',min:1,max:50,color:'#f6bc6b'},
+            turbi:{x:'Turbidez (NTU)',y:'Voltaje (V)',min:0,max:100,yMin:0,yMax:9.5,color:'#88b5ff'}
+        };
+        function syncLiveChart(type) {
+            const cfg = sweepTypes[type], axes = liveSampleAxes[type], canvas = document.getElementById('liveChart-' + type);
+            if (!canvas || typeof Chart === 'undefined') return;
+            const samples = parseData(cfg.data);
+            if (!liveSampleCharts[type]) {
+                liveSampleCharts[type] = new Chart(canvas.getContext('2d'), {
+                    type:'scatter',
+                    data:{datasets:[{
+                        label:'Muestras simuladas',data:[],showLine:true,pointRadius:3.4,
+                        pointHoverRadius:6,borderWidth:2.5,backgroundColor:axes.color,borderColor:axes.color,
+                        tension:0.12,fill:false
+                    }]},
+                    options:{
+                        responsive:true,maintainAspectRatio:false,animation:false,
+                        interaction:{mode:'nearest',intersect:false},
+                        scales:{
+                            x:{type:'linear',min:axes.min,max:axes.max,
+                                title:{display:true,text:axes.x,color:'#a1cec9',font:{size:10}},
+                                grid:{color:'rgba(134,189,204,.09)'},ticks:{color:'#9db8cb',font:{size:10}}},
+                            y:{type:'linear',min:axes.yMin,max:axes.yMax,
+                                title:{display:true,text:axes.y,color:'#a1cec9',font:{size:10}},
+                                grid:{color:'rgba(134,189,204,.09)'},ticks:{color:'#9db8cb',font:{size:10}}}
+                        },
+                        plugins:{
+                            legend:{display:false},
+                            tooltip:{backgroundColor:'rgba(5,24,40,.96)',padding:10,
+                                callbacks:{label(ctx){return ctx.parsed.x.toFixed(2)+' → '+ctx.parsed.y.toFixed(2);}}}
+                        }
+                    }
+                });
+            }
+            const sampleCount = document.getElementById('liveCount-' + type);
+            if (sampleCount) sampleCount.textContent = samples.length + ' puntos capturados';
+            liveSampleCharts[type].data.datasets[0].data = samples;
+            liveSampleCharts[type].update('none');
+        }
+        function showSweepStatus(type, message, percentage) {
+            document.getElementById('sweepStatus-' + type).textContent = message;
+            document.getElementById('sweepBar-' + type).style.width = percentage + '%';
+            document.getElementById('sweepProgress-' + type).setAttribute('aria-valuenow', String(Math.round(percentage)));
+        }
+        function stopManualRecorder(type) {
+            if (type === 'ldr') { clearInterval(recordingTimerLab); recordingTimerLab = null; }
+            else if (type === 'rf') { clearInterval(recordingTimerRF); recordingTimerRF = null; }
+            else { clearInterval(recordingTimerTurbi); recordingTimerTurbi = null; }
+            const button = document.getElementById(sweepTypes[type].manual);
+            button.disabled = false;
+            button.textContent = '🔴 Grabar moviendo deslizador';
+        }
+        function stopAutomaticSweep(type, reason) {
+            const current = activeSweeps[type];
+            if (!current) return;
+            cancelAnimationFrame(current.raf);
+            for (const element of current.locked) element.disabled = false;
+            delete activeSweeps[type];
+            document.getElementById('autoButton-' + type).textContent = '▶ Iniciar recorrido';
+            if (reason === 'clear') {
+                showSweepStatus(type, 'Datos eliminados. Puedes iniciar otro recorrido.', 0);
+            } else {
+                const count = parseData(sweepTypes[type].data).length;
+                showSweepStatus(type, reason === 'complete'
+                    ? '✓ Recorrido completo: '+count+' muestras. Ya puedes aplicar el método numérico.'
+                    : 'Recorrido detenido: '+count+' muestras conservadas.', reason === 'complete' ? 100 : current.lastPercent);
+                sweepTypes[type].analyze();
+            }
+        }
+        function startAutomaticSweep(type) {
+            if (activeSweeps[type]) { stopAutomaticSweep(type, 'stopped'); return; }
+            const cfg = sweepTypes[type];
+            if (!cfg) return;
+            const initialEl = document.getElementById('autoStart-' + type);
+            const finalEl = document.getElementById('autoEnd-' + type);
+            const durationEl = document.getElementById('autoDuration-' + type);
+            const initial = Number(initialEl.value), final = Number(finalEl.value), duration = Number(durationEl.value);
+            if (!initialEl.value || !finalEl.value || !durationEl.value ||
+                ![initial, final, duration].every(Number.isFinite) ||
+                initial < cfg.min || initial > cfg.max || final < cfg.min || final > cfg.max ||
+                initial === final || duration < 3 || duration > 30) {
+                showSweepStatus(type, 'Revisa el rango de distancias/concentraciones y utiliza una duración entre 3 y 30 s. Inicio y final deben ser distintos.', 0);
+                return;
+            }
+            stopManualRecorder(type);
+            const parameters = type === 'rf' ? {
+                urban:Number(document.getElementById('urbanSlider').value),
+                ptx:Number(document.getElementById('txPower').value),
+                g:Number(document.getElementById('txGain').value),
+                f:Number(document.getElementById('freqVal').value)
+            } : {};
+            if (type === 'rf' && (![parameters.urban,parameters.ptx,parameters.g,parameters.f].every(Number.isFinite) || parameters.f <= 0)) {
+                showSweepStatus(type, 'Verifica los parámetros del enlace: la frecuencia debe ser positiva.', 0);
+                return;
+            }
+            const locked = [initialEl,finalEl,durationEl,document.getElementById(cfg.slider),
+                document.getElementById(cfg.manual),...cfg.fixed.map(id => document.getElementById(id)),
+                ...document.querySelectorAll('.scenario-btn[data-scenario="' + type + '"]')].filter(Boolean);
+            if (type === 'turbi') {
+                const button = document.getElementById('btnTurbiSingle');
+                if (button) locked.push(button);
+            }
+            locked.forEach(el => {el.disabled = true;});
+            const area = document.getElementById(cfg.data);
+            area.value = '';
+            cfg.analyze();
+            document.getElementById('autoButton-' + type).textContent = '■ Detener recorrido';
+            const total = 20; // 20 intervalos = 21 muestras, incluyendo los extremos
+            let startTimestamp = null, next = 0, lastVisual = -Infinity;
+            const state = {raf:0,locked,lastPercent:0};
+            activeSweeps[type] = state;
+            function animate(timestamp) {
+                if (activeSweeps[type] !== state) return;
+                if (startTimestamp === null) startTimestamp = timestamp;
+                const elapsed = Math.min(1, (timestamp - startTimestamp)/(duration*1000));
+                const actualPosition = initial + (final - initial)*elapsed;
+                document.getElementById(cfg.slider).value = actualPosition.toFixed(2);
+                if (timestamp - lastVisual > 80 || elapsed >= 1) {
+                    cfg.visualize();
+                    lastVisual = timestamp;
+                }
+                let changed = false;
+                while (next <= total && elapsed + 1e-9 >= next / total) {
+                    const x = initial + (final - initial)*next/total;
+                    const y = cfg.sample(x,parameters);
+                    area.value += (area.value ? '\n' : '') + x.toFixed(2) + ', ' + y.toFixed(2);
+                    next++;
+                    changed = true;
+                }
+                if (changed) {
+                    area.scrollTop = area.scrollHeight;
+                    syncLiveChart(type);
+                }
+                state.lastPercent = elapsed * 100;
+                showSweepStatus(type,'Recorriendo… '+next+'/21 muestras · '+
+                    (duration * (1-elapsed)).toFixed(1)+' s restantes', state.lastPercent);
+                if (elapsed >= 1) stopAutomaticSweep(type,'complete');
+                else state.raf = requestAnimationFrame(animate);
+            }
+            state.raf = requestAnimationFrame(animate);
+            const stage = document.getElementById('liveChart-' + type).closest('.live-demo-layout');
+            if (stage) stage.scrollIntoView({behavior:'smooth',block:'center'});
+        }
+
         function openTab(evt, tabName) {
             document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
             document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
@@ -756,8 +1010,11 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             document.getElementById('liveReadings').innerText = `Distancia: ${d.toFixed(1)} cm | Voltaje: ${voltage.toFixed(2)} V`;
 
             // Separación gráfica y brillo ligados a las variables del modelo.
-            const px = 36 + ((d - 5) / 115) * 614;
-            document.getElementById('flashlightContainer').style.left = `calc(100% - ${px + 50}px)`;
+            const stageWidth = document.querySelector('.simulation-area').getBoundingClientRect().width;
+            const minGap = Math.min(34, Math.max(17, stageWidth * 0.08));
+            const maxGap = Math.max(minGap + 8, stageWidth - 100);
+            const px = minGap + ((d - 5) / 115) * (maxGap - minGap);
+            document.getElementById('flashlightContainer').style.left = Math.max(5, stageWidth - 85 - px) + 'px';
             const beam = document.getElementById('lightBeam');
             beam.style.width = `${px}px`;
             beam.style.opacity = Math.max(0.12, relative);
@@ -776,10 +1033,10 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 txt.value += (txt.value ? "\n" : "") + `${d.toFixed(1)}, ${calculateVirtualVoltage(d).toFixed(2)}`;
                 txt.scrollTop = txt.scrollHeight; runSimulationLab(); 
                 elapsed += 500; btn.innerText = `Grabando... ${((durationSec*1000 - elapsed)/1000).toFixed(1)}s`;
-                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerLab); btn.disabled = false; btn.innerText = "🔴 Grabar"; }
+                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerLab); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
             }, 500);
         }
-        function clearDataLab() { clearInterval(recordingTimerLab); document.getElementById('btnRecordLab').disabled = false; document.getElementById('btnRecordLab').innerText = "🔴 Grabar"; document.getElementById('dataInput').value = ""; runSimulationLab(); }
+        function clearDataLab() { stopAutomaticSweep('ldr', 'clear'); stopManualRecorder('ldr'); document.getElementById('dataInput').value = ""; showSweepStatus('ldr', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runSimulationLab(); }
         
         function toggleInputsLab() {
             const m = document.getElementById('methodSelect').value, c = document.getElementById('dynamicInputsLab');
@@ -825,6 +1082,7 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             if (myChart) myChart.destroy();
             let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Distancia (cm)'; opt.scales.y.title.text = 'Voltaje (V)'; opt.scales.y.min = 0;
             myChart = new Chart(document.getElementById('mainChart').getContext('2d'), { type: 'scatter', data: { datasets }, options: opt});
+            syncLiveChart('ldr');
         }
 
         // --- 2. RF (DRIVE TEST) ---
@@ -850,6 +1108,9 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             writeTelemetry('rfPowerMetric', power.toFixed(1) + ' dBm');
             writeTelemetry('rfUrbanMetric', ((u / 100) * 0.4 * d).toFixed(1) + ' dB');
             fillTelemetry('rfPowerBar', relativePower * 100);
+            const stage = document.querySelector('.telecom-visual');
+            const receiver = document.getElementById('rfReceiver');
+            if (receiver && stage) receiver.style.left = (63 + ((d - 1) / 49) * Math.max(10, stage.getBoundingClientRect().width - 145)) + 'px';
         }
         function startRecordingRF() {
             const durationSec = parseInt(document.getElementById('timeRF').value), btn = document.getElementById('btnRecordRF');
@@ -861,10 +1122,10 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 txt.value += (txt.value ? "\n" : "") + `${d.toFixed(1)}, ${getRFPower(d, u, ptx, g, f).toFixed(2)}`;
                 txt.scrollTop = txt.scrollHeight; runTelecomSimulation(); 
                 elapsed += 500; btn.innerText = `Grabando... ${((durationSec*1000 - elapsed)/1000).toFixed(1)}s`;
-                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerRF); btn.disabled = false; btn.innerText = "🔴 Grabar"; }
+                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerRF); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
             }, 500);
         }
-        function clearRF() { clearInterval(recordingTimerRF); document.getElementById('btnRecordRF').disabled = false; document.getElementById('btnRecordRF').innerText = "🔴 Grabar"; document.getElementById('dataRF').value = ""; runTelecomSimulation(); }
+        function clearRF() { stopAutomaticSweep('rf', 'clear'); stopManualRecorder('rf'); document.getElementById('dataRF').value = ""; showSweepStatus('rf', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTelecomSimulation(); }
 
         function toggleInputsTelecom() {
             const m = document.getElementById('telecomMethod').value, c = document.getElementById('dynamicInputsTelecom');
@@ -943,6 +1204,7 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Distancia (Km)'; opt.scales.y.title.text = 'Potencia Rx (dBm)';
             telecomChartObj = new Chart(document.getElementById('telecomChart').getContext('2d'), { type: 'scatter', data: { datasets: ds }, options: opt});
             document.getElementById('telecomResults').innerHTML = resHtml;
+            syncLiveChart('rf');
         }
 
         // --- 3. TURBIDÍMETRO ---
@@ -951,7 +1213,7 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             const ntu = parseFloat(document.getElementById('turbiSlider').value);
             const voltage = getTurbiVolt(ntu);
             const relative = Math.max(0, Math.min(1, voltage / 9));
-            document.getElementById('turbiReadings').innerText = `Turbidez: ${ntu} NTU | Sensor: ${voltage.toFixed(2)} V`;
+            document.getElementById('turbiReadings').innerText = `Turbidez: ${ntu.toFixed(1)} NTU | Sensor: ${voltage.toFixed(2)} V`;
             document.getElementById('waterMurkiness').style.opacity = ntu / 100;
             document.getElementById('turbiBeam').style.opacity = Math.max(0.08, relative);
             document.getElementById('waterParticles').style.opacity = Math.pow(ntu / 100, 0.75) * 0.9;
@@ -970,11 +1232,11 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
                 txt.value += (txt.value ? "\n" : "") + `${ntu}, ${getTurbiVolt(ntu).toFixed(2)}`;
                 txt.scrollTop = txt.scrollHeight; runTurbiSimulation(); 
                 elapsed += 500; btn.innerText = `Grabando... ${((durationSec*1000 - elapsed)/1000).toFixed(1)}s`;
-                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerTurbi); btn.disabled = false; btn.innerText = "🔴 Grabar"; }
+                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerTurbi); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
             }, 500);
         }
         function takeTurbiSample() { const ntu = document.getElementById('turbiSlider').value, txt = document.getElementById('turbiData'); txt.value += (txt.value ? "\n" : "") + `${ntu}, ${getTurbiVolt(ntu).toFixed(2)}`; runTurbiSimulation(); }
-        function clearTurbi() { clearInterval(recordingTimerTurbi); document.getElementById('btnRecordTurbi').disabled = false; document.getElementById('btnRecordTurbi').innerText = "🔴 Grabar"; document.getElementById('turbiData').value = ""; runTurbiSimulation(); }
+        function clearTurbi() { stopAutomaticSweep('turbi', 'clear'); stopManualRecorder('turbi'); document.getElementById('turbiData').value = ""; showSweepStatus('turbi', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTurbiSimulation(); }
         
         function toggleInputsTurbi() {
             const m = document.getElementById('turbiMethod').value, c = document.getElementById('turbiDynamic');
@@ -1039,6 +1301,7 @@ button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffe
             let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Turbidez (NTU)'; opt.scales.y.title.text = 'Voltaje Sensor (V)';
             turbiChartObj = new Chart(document.getElementById('turbiChart').getContext('2d'), { type: 'scatter', data: { datasets }, options: opt });
             document.getElementById('turbiResults').innerHTML = htmlRes;
+            syncLiveChart('turbi');
         }
 
 
