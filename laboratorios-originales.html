@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analítico: Propagación y Fluidos | Ismael</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        :root {
+            --neon-blue: #00d2ff;
+            --neon-purple: #3a7bd5;
+            --glass-bg: rgba(25, 30, 50, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #a0aec0;
+            --danger: #ff4757;
+            --warning: #f1c40f;
+            --success: #2ecc71;
+        }
+
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            margin: 0; padding: 0; 
+            background-color: #020617; 
+            color: var(--text-main); 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+            position: relative;
+        }
+
+        /* --- FONDOS LÍQUIDOS ANIMADOS --- */
+        .background-blobs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; }
+        .blob { position: absolute; filter: blur(80px); opacity: 0.6; animation: float 20s infinite alternate ease-in-out; }
+        .blob-1 { width: 600px; height: 600px; background: #003cff; border-radius: 40% 60% 70% 30%; top: -150px; left: -100px; }
+        .blob-2 { width: 500px; height: 500px; background: #00d2ff; border-radius: 60% 40% 30% 70%; bottom: -100px; right: -50px; animation-duration: 25s; animation-direction: alternate-reverse; }
+        .blob-3 { width: 400px; height: 400px; background: #3a7bd5; border-radius: 50%; top: 40%; left: 40%; opacity: 0.3; animation-duration: 30s; }
+        
+        @keyframes float {
+            0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+            50% { transform: scale(1.1) translate(50px, 30px) rotate(10deg); }
+            100% { transform: scale(0.9) translate(-30px, 60px) rotate(-10deg); }
+        }
+
+        /* --- ESTRUCTURA GLASSMORPHISM --- */
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 12px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 1px solid var(--glass-border); background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(10px); z-index: 10; }
+        header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; background: -webkit-linear-gradient(right, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .tab-container { display: flex; padding: 10px 30px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 10px 20px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.3s; position: relative; }
+        .tab-btn:hover { color: var(--text-main); }
+        .tab-btn.active { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 210, 255, 0.5); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 10%; width: 80%; height: 3px; background: var(--neon-blue); border-radius: 3px 3px 0 0; box-shadow: 0 -2px 10px var(--neon-blue); }
+        
+        .tab-content { display: none; flex-direction: column; flex: 1; overflow-y: auto; padding: 20px; }
+        .tab-content.active { display: flex; }
+
+        .container { display: flex; flex: 1; gap: 20px; min-height: 0; }
+        .controls { width: 340px; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        .controls h2 { font-size: 1.1rem; margin-top: 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; font-weight: 600; }
+        .control-group { margin-bottom: 15px; }
+        
+        label { display: flex; align-items: center; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-muted); }
+        
+        /* --- INFO TOOLTIPS --- */
+        .info-tooltip { position: relative; display: inline-flex; align-items: center; margin-left: 6px; cursor: help; }
+        .info-tooltip .icon { display: flex; justify-content: center; align-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--neon-blue); color: #020617; font-size: 10px; font-weight: 800; font-family: monospace; transition: 0.3s; box-shadow: 0 0 5px var(--neon-blue); }
+        .info-tooltip:hover .icon { background: var(--text-main); box-shadow: 0 0 10px #fff; }
+        .info-tooltip .text {
+            visibility: hidden; opacity: 0; position: absolute; z-index: 9999;
+            background: rgba(15, 23, 42, 0.95); border: 1px solid var(--neon-blue);
+            color: #fff; padding: 12px; border-radius: 8px; width: 230px;
+            font-size: 0.75rem; font-weight: normal; line-height: 1.4;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8); pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            top: 150%; left: 50%; transform: translateX(-50%) translateY(-10px);
+        }
+        .info-tooltip .text::after { 
+            content: ''; position: absolute; bottom: 100%; left: 50%; 
+            margin-left: -5px; border-width: 5px; border-style: solid; 
+            border-color: transparent transparent var(--neon-blue) transparent; 
+        }
+        .info-tooltip:hover .text { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+        .controls .info-tooltip .text { left: 0; transform: translateX(-15%) translateY(-10px); }
+        .controls .info-tooltip .text::after { left: 15%; }
+        .controls .info-tooltip:hover .text { transform: translateX(-15%) translateY(0); }
+
+        select, input, textarea { width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 6px; color: var(--text-main); font-family: monospace; font-size:0.9rem; transition: 0.3s; }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: var(--neon-blue); box-shadow: 0 0 8px rgba(0, 210, 255, 0.3); }
+        textarea { height: 80px; resize: vertical; }
+
+        button { background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue)); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5); }
+        button:disabled { background: #555; box-shadow: none; cursor: not-allowed; transform: none; color: #888;}
+        button.btn-danger { background: linear-gradient(135deg, #c0392b, #e74c3c); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); }
+        button.btn-warning { background: linear-gradient(135deg, #d35400, #f39c12); box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3); }
+
+        .help-desc { display: block; font-size: 0.82rem; color: #b2ebf2; margin-top: 8px; line-height: 1.4; background: rgba(0, 210, 255, 0.05); padding: 10px; border-radius: 6px; border-left: 3px solid var(--neon-blue); font-style: italic;}
+        .results-panel { margin-top: 15px; padding: 15px; background: rgba(0, 255, 136, 0.05); border-left: 4px solid var(--success); border-radius: 6px; font-family: monospace; font-size: 0.95rem; text-shadow: 0 0 5px rgba(46, 204, 113, 0.5); }
+        
+        .visualization { flex: 1; padding: 20px; display: flex; flex-direction: column; min-width: 0;}
+        .chart-container { flex: 1; position: relative; min-height: 250px; }
+
+        /* Simulación Visuals */
+        .virtual-lab { padding: 20px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; z-index: 5;}
+        .lab-controls { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; background: rgba(0,0,0,0.4); padding: 12px 25px; border-radius: 8px; border: 1px solid var(--glass-border); width: 100%; max-width: 1100px; justify-content: center; flex-wrap: wrap;}
+        .compact-inputs { display: flex; gap: 10px; background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 6px;}
+        .compact-inputs div { display: flex; flex-direction: column; align-items: center; }
+        
+        .simulation-area { width: 100%; max-width: 800px; height: 100px; position: relative; border-bottom: 2px solid var(--glass-border); display: flex; align-items: center; background: rgba(0,0,0,0.2); border-radius: 8px 8px 0 0; }
+        .ldr-sensor { position: absolute; right: 20px; width: 25px; height: 45px; background: #e74c3c; border-radius: 4px; box-shadow: 0 0 15px #e74c3c; }
+        .flashlight-container { position: absolute; left: 0; display: flex; align-items: center; transition: 0.1s; }
+        .flashlight { width: 40px; height: 25px; background: #95a5a6; border-radius: 4px 0 0 4px; border-right: 4px solid #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .light-beam { height: 50px; background: linear-gradient(90deg, rgba(0, 210, 255, 0.8), transparent); clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%); }
+        .readings { margin-top: 10px; font-size: 1.1rem; font-family: monospace; color: var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue); }
+
+        .telecom-visual { width: 100%; max-width: 800px; height: 140px; position: relative; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 50px; background: linear-gradient(to top, rgba(255,255,255,0.05), transparent); border-bottom: 2px solid var(--glass-border); overflow: hidden;}
+        .cityscape { position: absolute; bottom: 0; left: 0; right: 0; height: 0px; background: repeating-linear-gradient(90deg, #34495e, #34495e 20px, transparent 20px, transparent 25px), repeating-linear-gradient(90deg, #2c3e50, #2c3e50 35px, transparent 35px, transparent 45px); opacity: 0.8; transition: height 0.3s ease, opacity 0.3s ease; z-index: 1;}
+        .tower { width: 12px; height: 90px; background: #7f8c8d; position: relative; box-shadow: 0 0 10px rgba(255,255,255,0.2); z-index: 2;}
+        .tower::after { content: ''; position: absolute; top: -5px; left: -4px; width: 20px; height: 8px; background: var(--danger); border-radius: 10px; box-shadow: 0 0 15px var(--danger); }
+        .rf-wave { position: absolute; top: 15px; left: 60px; right: 60px; height: 50px; background: repeating-radial-gradient(circle at 0 50%, rgba(0, 210, 255, 0.4) 0, transparent 25px); transition: background 0.3s; z-index: 2;}
+
+        .tank-container { width: 100%; max-width: 600px; height: 100px; border: 2px solid var(--neon-blue); border-radius: 8px; position: relative; background: rgba(0, 210, 255, 0.1); overflow: hidden; display: flex; align-items: center; justify-content: space-between; box-shadow: inset 0 0 20px rgba(0,210,255,0.2); }
+        .water-murkiness { position: absolute; top:0; left:0; right:0; bottom:0; background: #2c3e50; opacity: 0; transition: 0.2s; z-index: 1; }
+        .turbi-laser { width: 15px; height: 15px; background: #00ff88; border-radius: 0 50% 50% 0; z-index: 2; margin-left: -2px; box-shadow: 0 0 15px #00ff88; }
+        .turbi-beam { height: 6px; flex: 1; background: rgba(0, 255, 136, 0.8); z-index: 2; transition: 0.2s; box-shadow: 0 0 20px #00ff88; }
+        .turbi-sensor { width: 12px; height: 30px; background: #ecf0f1; border-radius: 3px; z-index: 2; margin-right: 5px; }
+
+        .analysis-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .card { padding: 25px; }
+        .card h3 { display:flex; align-items:center; margin-top: 0; color: var(--neon-blue); border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+        .math-box { background: rgba(0,0,0,0.4); border-left: 4px solid var(--neon-purple); padding: 15px; margin: 15px 0; overflow-x: auto; font-size: 1.1em; border-radius: 0 6px 6px 0; }
+    
+/* Interfaz de laboratorio 2.0: mejoras visuales sin cambiar los algoritmos */
+/* Un solo desplazamiento de página; evita recortes en paneles y gráficas */
+body { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; }
+.tab-content { overflow:visible; flex:1 0 auto; }
+.container { min-height:auto; }
+.controls { overflow:visible; }
+
+:root { --neon-blue:#4ee7d5; --neon-purple:#687bff; --glass-bg:rgba(12,24,44,.88); --glass-border:rgba(171,206,238,.18); --text-muted:#a9bed4; --success:#39d7a1; }
+* { font-family:'Manrope',sans-serif; }
+body { background:radial-gradient(ellipse at 10% 4%,#163361,transparent 43%),radial-gradient(ellipse at 92% 90%,#104a51,transparent 42%),#070d1a;line-height:1.5; }
+body::before { content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(120,180,215,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(120,180,215,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(black,transparent 95%); }
+.background-blobs{opacity:.33}
+header,.tab-container,.tab-content{position:relative;z-index:1}
+header{padding:17px clamp(16px,3.4vw,52px);gap:16px;background:rgba(5,13,27,.83);border-color:var(--glass-border)}
+header h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.18rem,1.7vw,1.55rem);letter-spacing:-.04em;background:linear-gradient(90deg,#fff,#79f7e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.18}
+.brand-group{display:flex;align-items:center;gap:14px}
+.brand-mark{display:grid;place-items:center;flex:none;width:46px;height:46px;background:linear-gradient(145deg,rgba(65,232,210,.25),rgba(100,112,255,.13));border:1px solid rgba(79,229,211,.48);border-radius:14px;color:#8cffe9;font-size:1.5rem}
+.brand-kicker,.eyebrow{display:block;color:#74eddc;font-size:.63rem;letter-spacing:.17em;text-transform:uppercase;font-weight:800}
+.brand-kicker{margin-bottom:3px}
+.header-meta{display:flex;align-items:center;gap:16px}
+.header-meta .edition{font-size:.73rem;color:var(--text-muted);text-align:right}
+.live-status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:99px;color:#b0f9e7;font-size:.68rem;font-weight:800;border:1px solid rgba(77,225,191,.3);background:rgba(77,225,191,.08);white-space:nowrap}
+.live-status::before{content:"";width:8px;height:8px;border-radius:50%;background:#53ecb9;box-shadow:0 0 9px #4decad;animation:breathe 2.2s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.35;box-shadow:none}}
+.tab-container{padding:12px clamp(16px,3.4vw,52px);gap:7px;overflow-x:auto;background:rgba(5,12,23,.43);border-color:var(--glass-border)}
+.tab-btn{flex:none;border:1px solid transparent;border-radius:12px;padding:10px 17px;font-size:.84rem;font-weight:800;color:#a4b6cc;box-shadow:none}
+.tab-btn:hover{color:white;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);box-shadow:none}
+.tab-btn.active{color:#a1ffef;background:rgba(73,231,209,.12);border-color:rgba(73,231,209,.28);text-shadow:none}
+.tab-btn.active::after{display:none}
+.tab-content{padding:21px clamp(16px,3.4vw,52px) 32px;gap:17px}
+.section-intro{display:flex;align-items:end;justify-content:space-between;gap:14px}
+.section-intro h2{margin:4px 0 5px;font-family:'Space Grotesk',sans-serif;font-size:clamp(1.3rem,2vw,1.8rem);letter-spacing:-.035em;line-height:1.2;color:white}
+.section-intro p{margin:0;max-width:70ch;color:var(--text-muted);font-size:.83rem}
+.concept-chip{flex:none;border:1px solid rgba(125,141,255,.3);border-radius:99px;background:rgba(103,119,255,.11);padding:8px 13px;font-weight:800;color:#bac5ff;font-size:.71rem}
+.usage-guide{position:relative;z-index:2;flex:none;margin:0 clamp(16px,3.4vw,52px);border:1px solid rgba(158,189,222,.18);border-radius:12px;background:rgba(18,33,55,.65)}
+.usage-guide summary{list-style:none;cursor:pointer;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;color:#bdcde1;font-size:.77rem;font-weight:750}
+.usage-guide summary::-webkit-details-marker{display:none}
+.usage-guide summary::after{content:"+";color:#74f4e1;font-size:1rem}
+.usage-guide[open] summary::after{content:"−"}
+.guide-body{padding:0 16px 13px;color:#b4c5d9;font-size:.76rem;line-height:1.8}
+.guide-body strong{color:#adffec}
+.scenario-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;border:1px solid rgba(72,225,208,.19);border-radius:13px;background:linear-gradient(90deg,rgba(44,146,138,.16),rgba(13,28,48,.62))}
+.scenario-label{font-size:.78rem;font-weight:800;color:#d7fff5;margin-right:auto}
+.scenario-label small{display:block;font-size:.66rem;font-weight:500;color:#a5b8c6}
+.scenario-actions{display:flex;flex-wrap:wrap;gap:7px}
+.scenario-btn{border:1px solid rgba(148,178,213,.27);border-radius:9px;padding:8px 12px;font-size:.71rem;font-weight:800;background:rgba(11,24,43,.85);color:#c3d3e6;box-shadow:none}
+.scenario-btn:hover,.scenario-btn.selected{color:#adfff0;background:rgba(50,208,181,.2);border-color:rgba(89,242,209,.55);box-shadow:none}
+.glass-panel{background:var(--glass-bg);border-radius:17px;box-shadow:0 12px 42px rgba(0,0,0,.2)}
+.virtual-lab{padding:21px;margin-bottom:0;background:linear-gradient(120deg,rgba(19,40,63,.95),rgba(11,23,41,.95))}
+.virtual-lab>h3{font-family:'Space Grotesk',sans-serif}
+.lab-controls{border-radius:12px;background:rgba(4,12,25,.42);border-color:rgba(155,189,220,.14);padding:13px 17px;gap:14px}
+label{color:#b7c9db;font-weight:700}
+input,select,textarea{background:rgba(4,13,27,.65);border-color:rgba(161,187,216,.22);border-radius:9px;font-family:'Manrope',sans-serif}
+input[type=range]{appearance:none;-webkit-appearance:none;height:7px;padding:0;border:0;border-radius:30px;cursor:pointer;background:linear-gradient(to right,#4ee7d5 0%,#4ee7d5 var(--range-fill,0%),rgba(122,145,172,.32) var(--range-fill,0%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border:4px solid #1bc9b6;border-radius:50%;background:#effffa;box-shadow:0 0 0 4px rgba(85,239,213,.13)}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border:4px solid #1bc9b6;border-radius:50%;background:#effffa}
+button:not(.tab-btn):not(.scenario-btn){border-radius:10px}
+button:focus-visible,.usage-guide summary:focus-visible{outline:2px solid #a5ffeb;outline-offset:3px}
+.simulation-area{border:1px solid rgba(80,174,190,.13);border-bottom:2px solid rgba(62,217,204,.37);border-radius:12px;background:linear-gradient(rgba(4,14,30,.6),rgba(6,18,29,.1));overflow:hidden}
+.simulation-area::after,.telecom-visual::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(133,205,212,.06) 1px,transparent 1px);background-size:34px 100%}
+.readings{font-size:.95rem;font-weight:800;letter-spacing:.01em;margin-top:15px;padding:8px 15px;border-radius:30px;background:rgba(55,215,190,.09);border:1px solid rgba(55,215,190,.18);text-shadow:none}
+.controls{width:320px;flex-shrink:0;padding:22px}
+.visualization{padding:22px}
+.chart-container{min-height:285px}
+.results-panel{border-radius:10px;text-shadow:none;font-size:.84rem;line-height:1.6}
+.help-desc{border-radius:9px;background:rgba(64,219,211,.07);color:#c4eae7}
+.card{padding:clamp(19px,3vw,32px)}
+.card h3{font-family:'Space Grotesk',sans-serif}
+.math-box{border-radius:10px;background:rgba(3,12,27,.55)}
+@media(max-width:1000px){.container{flex-direction:column;min-height:auto}.controls{width:100%;overflow:visible}.visualization{min-height:410px}.section-intro{align-items:flex-start}}
+@media(max-width:700px){body{height:auto;min-height:100dvh;overflow:auto}header{padding:14px 16px;flex-wrap:wrap}.header-meta{margin-left:60px}.header-meta .edition{text-align:left}.tab-container{padding:10px 16px}.tab-btn{padding:9px 11px;font-size:.74rem}.tab-content{padding:16px;overflow:visible;flex:auto}.section-intro{flex-wrap:wrap}.concept-chip{padding:6px 10px;font-size:.67rem}.usage-guide{margin:0 16px}.virtual-lab{padding:14px}.lab-controls{justify-content:flex-start}.lab-controls>div{max-width:100%;flex-wrap:wrap}.scenario-label,.scenario-actions{width:100%}.scenario-btn{flex:1}.readings{font-size:.77rem;text-align:center;line-height:1.7}.controls,.visualization{padding:17px}.visualization{min-height:350px}.chart-container{min-height:260px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+    
+/* Etapa 1: animaciones basadas en el estado de cada modelo */
+.telemetry-grid{
+    width:min(100%,1080px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;margin-top:15px;
+}
+.telemetry-card{
+    position:relative;min-width:0;text-align:left;overflow:hidden;
+    border:1px solid rgba(148,198,223,.16);border-radius:12px;
+    background:linear-gradient(145deg,rgba(6,18,34,.8),rgba(19,41,58,.72));
+    padding:12px 16px 13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+.telemetry-card::before{
+    content:"";position:absolute;right:-19px;top:-33px;width:87px;height:87px;border-radius:50%;
+    background:radial-gradient(circle,rgba(68,226,209,.11),transparent 67%);
+    pointer-events:none;
+}
+.telemetry-label{display:flex;align-items:center;gap:7px;color:#a9bfd1;font-size:.68rem;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.telemetry-label::before{content:"";width:6px;height:6px;border-radius:50%;background:#4ddfc9;box-shadow:0 0 8px rgba(75,225,208,.4)}
+.telemetry-value{display:block;margin:5px 0 0;color:#f4fcff;font-size:clamp(1.04rem,1.6vw,1.4rem);line-height:1.15;font-family:'Space Grotesk',sans-serif;font-weight:700;white-space:nowrap}
+.telemetry-note{display:block;color:#819eb2;font-size:.64rem;margin-top:5px;line-height:1.45}
+.telemetry-meter{margin-top:11px;overflow:hidden;height:5px;border-radius:99px;background:rgba(127,163,185,.21)}
+.telemetry-meter>i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#697bff,#42ead5);box-shadow:0 0 10px rgba(65,228,210,.36);transition:width .26s ease-out}
+.telemetry-card.rf-metric .telemetry-label::before{background:#f7be61;box-shadow:0 0 8px rgba(251,173,57,.3)}
+.telemetry-card.rf-metric .telemetry-meter>i{background:linear-gradient(90deg,#fd9568,#f3cb64)}
+.telemetry-card.turbi-metric .telemetry-label::before{background:#83b7ff}
+.telemetry-card.turbi-metric .telemetry-meter>i{background:linear-gradient(90deg,#5f79ff,#6ce7de)}
+.simulation-area,.telecom-visual,.tank-container{isolation:isolate}
+.simulation-area{background-image:linear-gradient(to right,rgba(5,23,37,.68),rgba(12,44,65,.12)),repeating-linear-gradient(90deg,rgba(97,191,197,.045) 0 1px,transparent 1px 40px)}
+.flashlight{position:relative;z-index:3;background:linear-gradient(#d3dfe5,#7f95a2);border:1px solid rgba(237,254,255,.55)}
+.flashlight::before{content:"";position:absolute;left:9px;top:7px;width:17px;height:9px;border-radius:3px;background:rgba(39,65,81,.5)}
+.light-beam{position:relative;overflow:hidden;transition:opacity .18s linear,width .16s linear;filter:drop-shadow(0 0 10px rgba(30,206,228,.18))}
+.light-beam .photon{position:absolute;left:-10px;top:24%;width:6px;height:4px;background:#c9faff;border-radius:50%;box-shadow:0 0 7px #f0ffff;animation:photonTravel 1.8s linear infinite}
+.light-beam .photon:nth-child(2){top:54%;animation-delay:-.6s}
+.light-beam .photon:nth-child(3){top:74%;animation-delay:-1.2s}
+@keyframes photonTravel{0%{left:-8px;opacity:0}12%{opacity:.75}82%{opacity:.9}100%{left:105%;opacity:0}}
+.ldr-sensor{transition:filter .2s,box-shadow .2s;background:linear-gradient(90deg,#d64f5d,#f27d59);z-index:4}
+.ldr-sensor::before{content:"";position:absolute;top:6px;left:6px;width:12px;height:31px;border-radius:3px;background:rgba(255,242,207,.38)}
+.telecom-visual{border-radius:13px 13px 0 0;background:radial-gradient(ellipse at 17% 70%,rgba(63,116,149,.18),transparent 54%),linear-gradient(to top,rgba(9,43,63,.25),transparent)}
+.cityscape{background:repeating-linear-gradient(90deg,#344e63 0 17px,transparent 17px 24px,#263c50 24px 54px,transparent 54px 60px);border-top:1px solid rgba(142,211,226,.2);box-shadow:0 -9px 35px rgba(20,85,106,.15);transition:height .25s ease-out}
+.cityscape::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0 12px,rgba(249,210,120,.18) 13px 15px,transparent 16px 21px);mask-image:repeating-linear-gradient(90deg,black 0 4px,transparent 4px 13px)}
+.rf-wave{background-size:190px 100%;background-repeat:repeat-x;animation:rfAdvance 2.3s linear infinite;transition:opacity .25s,filter .25s}
+.rf-wave::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(151,242,251,.12),transparent);background-size:38% 100%;background-repeat:no-repeat;animation:rfSweep 3.3s linear infinite;pointer-events:none}
+@keyframes rfAdvance{from{background-position:0 0}to{background-position:190px 0}}
+@keyframes rfSweep{from{background-position:-60% 0}to{background-position:160% 0}}
+.tower{z-index:4;background:linear-gradient(90deg,#58687a,#b0bfc8 60%,#60758b);border:1px solid rgba(230,244,255,.27)}
+.tank-container{background:linear-gradient(180deg,rgba(13,75,99,.3),rgba(15,48,67,.5));border-radius:11px;box-shadow:inset 0 10px 30px rgba(4,34,53,.4),0 9px 30px rgba(0,0,0,.12)}
+.water-murkiness{background:linear-gradient(180deg,rgba(122,121,78,.93),rgba(51,88,83,.98));transition:opacity .3s}
+.water-particles{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .3s}
+.water-particles span{position:absolute;width:5px;height:5px;border:1px solid rgba(241,217,157,.45);border-radius:50%;background:rgba(236,219,178,.64);box-shadow:0 0 9px rgba(250,219,151,.19);animation:floatParticle 3s ease-in-out infinite alternate}
+.water-particles span:nth-child(1){left:9%;top:20%}.water-particles span:nth-child(2){left:17%;top:70%;animation-delay:-.5s;width:4px}
+.water-particles span:nth-child(3){left:27%;top:40%;animation-delay:-1.1s}.water-particles span:nth-child(4){left:35%;top:83%;animation-delay:-.7s;width:7px}
+.water-particles span:nth-child(5){left:44%;top:18%;animation-delay:-1.8s}.water-particles span:nth-child(6){left:54%;top:60%;animation-delay:-1.3s;width:7px}
+.water-particles span:nth-child(7){left:65%;top:29%;animation-delay:-.2s}.water-particles span:nth-child(8){left:74%;top:78%;animation-delay:-1.7s;width:4px}
+.water-particles span:nth-child(9){left:85%;top:31%;animation-delay:-.9s}.water-particles span:nth-child(10){left:93%;top:62%;animation-delay:-1.4s}
+.water-particles span:nth-child(11){left:38%;top:18%;animation-delay:-.3s;width:3px}.water-particles span:nth-child(12){left:79%;top:48%;animation-delay:-2s;width:7px}
+@keyframes floatParticle{0%{transform:translateY(-8px) translateX(-3px)}100%{transform:translateY(10px) translateX(5px)}}
+.turbi-beam{transition:opacity .25s,filter .25s;animation:waterBeam 2.5s ease-in-out infinite alternate}
+@keyframes waterBeam{50%{filter:drop-shadow(0 0 11px rgba(111,245,215,.5))}}
+.turbi-sensor{transition:filter .25s;background:linear-gradient(#effbff,#82a8ae)}
+@media(max-width:700px){.telemetry-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.telemetry-card{padding:11px}.telemetry-card:last-child{grid-column:span 2}.telemetry-value{font-size:1.11rem}.telemetry-label{font-size:.59rem}}
+@media(max-width:420px){.telemetry-grid{grid-template-columns:1fr}.telemetry-card:last-child{grid-column:auto}}
+
+    
+/* Etapa 2: comparador A/B y lectura interactiva de curvas */
+.compare-panel{padding:0;overflow:hidden;border-color:rgba(112,180,216,.23);background:linear-gradient(130deg,rgba(16,36,57,.95),rgba(10,23,42,.96));}
+.compare-panel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:15px;padding:17px 20px;min-height:74px}
+.compare-panel>summary::-webkit-details-marker{display:none}
+.compare-symbol{display:grid;place-items:center;width:40px;height:40px;flex:none;border:1px solid rgba(111,226,214,.3);border-radius:12px;background:rgba(53,219,206,.1);font-size:1.4rem;color:#88fff0}
+.compare-head{display:flex;flex-direction:column;gap:3px}
+.compare-head strong{font-family:'Space Grotesk',sans-serif;color:#e9fcfc;letter-spacing:-.025em;font-size:1rem}
+.compare-head small{color:#9db8ce;font-size:.72rem;font-weight:500}
+.compare-callout{margin-left:auto;display:inline-flex;align-items:center;gap:8px;color:#9ef1e4;font-size:.71rem;font-weight:800;white-space:nowrap}
+.compare-callout::after{content:"⌄";font-size:1.1rem;transition:transform .2s ease}
+.compare-panel[open] .compare-callout::after{transform:rotate(180deg)}
+.compare-panel>summary:hover{background:rgba(255,255,255,.025)}
+.compare-body{border-top:1px solid rgba(144,184,205,.14);padding:18px 20px 21px}
+.compare-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.compare-actions button{padding:10px 16px;box-shadow:none!important;font-size:.77rem;font-weight:850}
+.compare-save-a{background:linear-gradient(140deg,#167a7d,#2bcdb2)!important}
+.compare-save-b{background:linear-gradient(140deg,#a96628,#efa749)!important}
+.compare-clear{background:rgba(126,146,177,.12)!important;border:1px solid rgba(155,181,209,.19)!important;color:#c8d6e3!important}
+.compare-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:14px}
+.compare-slot{padding:12px 15px;border:1px dashed rgba(143,178,206,.25);border-radius:12px;background:rgba(3,14,29,.35);min-width:0}
+.compare-slot[data-filled="true"]{border-style:solid;border-color:rgba(125,234,204,.31);background:rgba(45,139,128,.09)}
+.compare-slot.compare-b[data-filled="true"]{border-color:rgba(245,178,96,.35);background:rgba(138,87,38,.1)}
+.compare-slot .compare-slot-title{font-size:.64rem;letter-spacing:.14em;font-weight:850;color:#70eddb;text-transform:uppercase}
+.compare-slot.compare-b .compare-slot-title{color:#f8c37d}
+.compare-slot p{font-size:.8rem;font-weight:750;color:#c5d6e7;margin:5px 0 0}
+.compare-hint{font-size:.74rem;color:#9eb9cc;line-height:1.5;margin:13px 0 0}
+.compare-output{margin-top:18px}
+.compare-output[hidden]{display:none}
+.compare-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px}
+.compare-result{padding:13px 15px;border:1px solid rgba(151,188,222,.14);border-radius:11px;background:rgba(6,19,34,.62)}
+.compare-result small{color:#9eb2c5;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;font-weight:850}
+.compare-result strong{display:block;margin-top:5px;font:700 clamp(1rem,1.5vw,1.3rem)/1.1 'Space Grotesk',sans-serif;color:#f4fffd}
+.compare-result.a strong{color:#69e8d6}
+.compare-result.b strong{color:#f7c078}
+.compare-result.delta strong{color:#d4e6fb}
+.compare-chart{position:relative;height:305px;padding:12px 13px 9px;border-radius:13px;border:1px solid rgba(158,192,220,.14);background:rgba(3,13,26,.45)}
+.compare-chart canvas{max-height:100%}
+.compare-footnote{display:block;margin-top:10px;color:#91aabe;font-size:.69rem;line-height:1.5}
+@media(max-width:700px){.compare-panel>summary{padding:13px 15px}.compare-body{padding:14px}.compare-callout{font-size:0}.compare-callout::after{font-size:1.1rem}.compare-actions button{flex:1;min-width:100px}.compare-slots{grid-template-columns:1fr}.compare-results{grid-template-columns:1fr}.compare-chart{height:260px}}
+
+
+/* Etapa 3: barridos automáticos y lecturas que se dibujan junto al experimento */
+.auto-run-panel{
+    padding:19px clamp(16px,2.5vw,25px);border-color:rgba(71,222,196,.3);
+    background:linear-gradient(110deg,rgba(18,57,63,.94),rgba(15,31,55,.95));
+}
+.auto-run-heading h3{font:700 clamp(1.06rem,1.5vw,1.35rem)/1.2 'Space Grotesk',sans-serif;margin:5px 0 3px;color:#edfffa}
+.auto-run-heading p{color:#a9ced2;font-size:.77rem;margin:0 0 13px}
+.auto-run-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(175px,1.1fr);align-items:end;gap:10px}
+.auto-field{display:flex;flex-direction:column;align-items:stretch;gap:5px;margin:0;color:#bfeee5;font-size:.74rem}
+.auto-field input{min-width:0;min-height:41px;font-variant-numeric:tabular-nums}
+button.auto-run-btn{min-height:41px;padding:10px 14px;background:linear-gradient(110deg,#4ee7d5,#82bfff);color:#062332;font-weight:850;box-shadow:0 3px 13px rgba(73,227,200,.18);white-space:normal}
+.sweep-status{min-height:20px;margin:12px 0 6px;color:#b8e9e2;font-size:.73rem;font-weight:650}
+.sweep-progress{height:7px;border-radius:99px;background:rgba(128,171,184,.19);overflow:hidden;border:1px solid rgba(128,184,180,.17)}
+.sweep-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#42eac0,#a5edff);transition:width .08s linear}
+.manual-record{flex:none;border:1px solid rgba(142,179,206,.23);border-radius:10px;background:rgba(12,29,47,.72);max-width:100%}
+.manual-record>summary{list-style:none;cursor:pointer;padding:11px 13px;color:#bcdbe4;font-weight:750;font-size:.74rem}
+.manual-record>summary::-webkit-details-marker{display:none}
+.manual-record[open]{width:min(100%,320px)}
+.manual-record-content{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:3px 12px 12px}
+.manual-record-content label{display:flex;align-items:flex-start;flex-direction:column;gap:4px}
+.manual-record-content label input{max-width:130px}
+.manual-record-content button{font-size:.73rem;padding:9px 10px}
+.manual-record-content small{font-size:.69rem;color:#a3b8cb}
+.live-demo-layout{width:100%;max-width:1100px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);align-items:stretch;gap:15px}
+.demo-scene{display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0;gap:12px}
+.demo-scene .simulation-area,.demo-scene .telecom-visual,.demo-scene .tank-container{width:100%;max-width:none}
+.demo-scene .readings{margin:0;font-size:.76rem;max-width:100%;text-align:center;line-height:1.6}
+.demo-plot{min-width:0;min-height:235px;display:flex;flex-direction:column;border-radius:13px;border:1px solid rgba(129,177,205,.18);background:rgba(2,15,28,.55);padding:12px}
+.demo-plot-head{display:flex;flex-direction:column;gap:2px;margin-bottom:7px}
+.demo-plot-head strong{font-size:.78rem;color:#9df5e5}
+.demo-plot-head small{font-size:.68rem;color:#90acc3}
+.live-sample-counter{font-size:.7rem;color:#7ff4da;font-weight:800}
+.demo-plot-chart{position:relative;min-height:180px;flex:1}
+.demo-plot-chart canvas{max-height:100%}
+.rf-receiver{position:absolute;bottom:1px;left:22%;width:18px;height:39px;border-radius:4px;border:2px solid #b5d4ed;background:linear-gradient(#417b94,#183d56);box-shadow:0 0 10px rgba(131,210,231,.45);z-index:5;transition:left .09s linear}
+.rf-receiver::before{content:"";position:absolute;top:7px;left:3px;width:8px;height:16px;background:rgba(135,235,246,.72);border-radius:2px}
+.rf-receiver::after{content:"";position:absolute;bottom:2px;left:6px;width:3px;height:3px;border-radius:50%;background:#a7f8ff}
+.compare-panel{opacity:.93}
+@media(max-width:850px){.live-demo-layout{grid-template-columns:1fr}.demo-plot{min-height:225px}.demo-plot-chart{min-height:165px}}
+@media(max-width:650px){.auto-run-form{grid-template-columns:repeat(2,minmax(0,1fr))}.auto-run-form .auto-run-btn{grid-column:1 / -1}.auto-run-panel{padding:15px}.demo-scene .readings{font-size:.71rem}.lab-controls{gap:9px}}
+
+
+/* Etapa 4: lectura física y diferenciación entre medición y método numérico */
+.experiment-summary{
+    padding:clamp(18px,2.6vw,27px);border-color:rgba(74,221,188,.29);
+    background:linear-gradient(115deg,rgba(17,54,56,.93),rgba(12,28,47,.95));
+    display:flex;flex-direction:column;gap:13px;
+}
+.experiment-summary[hidden]{display:none}
+.summary-top h3{margin:5px 0 4px;font:700 clamp(1.12rem,1.8vw,1.5rem)/1.2 'Space Grotesk',sans-serif;color:#ecfff7}
+.summary-top p{margin:0;color:#9fbdc9;font-size:.76rem}
+.summary-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.summary-stat{min-width:0;padding:12px 15px;border:1px solid rgba(133,194,210,.18);border-radius:12px;background:rgba(5,24,38,.6)}
+.summary-stat small{display:block;color:#a6c3d0;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.summary-stat strong{display:block;margin-top:4px;font:700 clamp(.98rem,1.5vw,1.3rem)/1.3 'Space Grotesk',sans-serif;color:#f0fcff;font-variant-numeric:tabular-nums}
+.summary-stat.featured{background:rgba(52,168,151,.13);border-color:rgba(102,221,194,.34)}
+.summary-stat.featured strong{color:#87ffdd}
+.summary-explanation{border-left:3px solid #60e8cc;padding:10px 13px;margin:1px 0 0;border-radius:0 8px 8px 0;background:rgba(92,228,198,.07);font-size:.85rem;line-height:1.7;color:#d5f6ef}
+.summary-science{margin:0;font-size:.68rem;color:#9fb7c3}
+.numeric-heading{margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:13px;flex-wrap:wrap}
+.numeric-heading h3{margin:3px 0 0;font:700 clamp(.94rem,1.4vw,1.23rem)/1.3 'Space Grotesk',sans-serif;color:#eafffd}
+.numeric-heading p{flex:1 1 220px;max-width:400px;margin:0;color:#a8c6d4;font-size:.75rem;line-height:1.55}
+.demo-plot-head{position:relative}
+.demo-plot-head::after{content:"│ Posición actual";position:absolute;right:0;top:0;color:#f8cb83;font-size:.66rem;font-weight:800}
+@media(max-width:850px){.numeric-heading{flex-direction:column}.numeric-heading p{flex:auto;max-width:none}}
+@media(max-width:650px){.summary-metrics{grid-template-columns:1fr}.summary-stat{padding:10px 12px}.summary-explanation{font-size:.79rem}.demo-plot-head::after{top:auto;bottom:0}}
+
+
+/* Etapa final: modo de presentación, centrado en el recorrido y los resultados. */
+.presentation-toggle{border:1px solid rgba(114,246,213,.35)!important;background:rgba(50,194,165,.13)!important;color:#b7ffeb!important;box-shadow:none!important;padding:9px 14px!important;font-size:.78rem!important;white-space:nowrap}
+.presentation-toggle:hover,.presentation-toggle[aria-pressed="true"]{background:linear-gradient(110deg,rgba(64,221,182,.28),rgba(75,123,226,.16))!important;border-color:rgba(126,255,216,.65)!important}
+.presentation-toolbar[hidden],.presentation-steps[hidden]{display:none!important}
+.presentation-toolbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 clamp(16px,3.4vw,52px);padding:11px 14px;border-radius:0 0 17px 17px;border-top:0;background:rgba(6,24,38,.97);box-shadow:0 12px 34px rgba(0,0,0,.3)}
+.presentation-identity{display:flex;flex-direction:column;gap:2px;min-width:160px}
+.presentation-tag{font-size:.59rem;font-weight:850;letter-spacing:.18em;color:#72f1d1}
+.presentation-identity strong{font:700 .85rem/1.3 'Space Grotesk',sans-serif;color:#fff}
+.presentation-lab-picker{margin:0;display:flex;align-items:center;gap:8px;color:#badbdc;font-size:.7rem;white-space:nowrap}
+.presentation-lab-picker select{width:auto;max-width:210px;min-width:145px;padding:9px 11px;background:#0b2436;font-size:.75rem;font-weight:750}
+.presentation-steps{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-left:auto}
+button.presentation-step,button.presentation-utility{box-shadow:none!important;border-radius:9px!important;font-size:.72rem!important;padding:9px 11px!important;min-height:38px}
+button.presentation-step{background:rgba(119,167,191,.09);border:1px solid rgba(159,203,214,.16);color:#afc9d1}
+button.presentation-step:hover,button.presentation-step.active{background:rgba(78,224,195,.16);border-color:rgba(93,240,207,.44);color:#b7fff0}
+button.presentation-utility{background:rgba(106,134,160,.14);border:1px solid rgba(147,183,196,.22);color:#d7eaef}
+button.presentation-exit{background:rgba(246,114,112,.12);border-color:rgba(247,134,132,.34);color:#ffceca}
+.presentation-toolbar-note{width:100%;margin:0;color:#a1bfc9;font-size:.67rem;line-height:1.5}
+body.presentation-mode .tab-container,body.presentation-mode .usage-guide,body.presentation-mode .scenario-strip,
+body.presentation-mode .compare-panel,body.presentation-mode .telemetry-grid,
+body.presentation-mode .manual-record,body.presentation-mode .btn-danger,
+body.presentation-mode .controls>textarea,body.presentation-mode #labTab .controls>label,
+body.presentation-mode .section-intro .concept-chip{display:none!important}
+body.presentation-mode header{padding-top:9px;padding-bottom:9px}
+body.presentation-mode header .live-status{display:none}
+body.presentation-mode .tab-content{padding-top:16px;gap:13px}
+body.presentation-mode .section-intro p{font-size:.79rem}
+body.presentation-mode .auto-run-panel{padding:15px 20px}
+body.presentation-mode .auto-run-heading p{margin-bottom:10px}
+body.presentation-mode .virtual-lab{padding:20px}
+body.presentation-mode #labTab .lab-controls,body.presentation-mode #turbiTab .lab-controls{display:none}
+body.presentation-mode #fieldTab .lab-controls{margin-bottom:16px;padding:10px;justify-content:center}
+body.presentation-mode #fieldTab .lab-controls>div:first-child>div:first-child{display:none}
+body.presentation-mode #fieldTab .lab-controls>div:first-child{border-right:0!important;padding-right:0!important}
+body.presentation-mode .demo-plot{min-height:295px}
+body.presentation-mode .demo-plot-chart{min-height:220px}
+body.presentation-mode .container{gap:14px}
+body.presentation-mode .controls{width:260px;padding:18px}
+body.presentation-mode .controls>select{margin-top:0!important}
+body.presentation-mode .visualization{min-height:355px}
+body.presentation-mode .chart-container{min-height:290px}
+body.presentation-mode .auto-run-panel,body.presentation-mode .experiment-summary,body.presentation-mode .container,body.presentation-mode .analysis-container{scroll-margin-top:145px}
+@media(max-width:1170px){.presentation-toolbar{gap:8px}.presentation-steps{margin-left:0}.presentation-identity{min-width:130px}button.presentation-step{padding:8px!important}}
+@media(max-width:850px){body.presentation-mode .container{flex-direction:column}body.presentation-mode .controls{width:100%}body.presentation-mode .demo-plot{min-height:230px}body.presentation-mode .demo-plot-chart{min-height:170px}}
+@media(max-width:700px){.presentation-toolbar{margin:0 16px;padding:11px}.presentation-identity{width:100%}.presentation-lab-picker{flex:1}.presentation-lab-picker select{max-width:100%;flex:1}.presentation-steps{width:100%;justify-content:space-between}.presentation-steps button{flex:1}.presentation-toolbar-note{display:none}body.presentation-mode .header-meta{margin-left:0}body.presentation-mode .header-meta .edition{display:none}body.presentation-mode .auto-run-panel{padding:14px}body.presentation-mode .virtual-lab{padding:13px}body.presentation-mode .demo-plot{min-height:215px}body.presentation-mode .auto-run-panel,body.presentation-mode .experiment-summary,body.presentation-mode .container,body.presentation-mode .analysis-container{scroll-margin-top:205px}}
+
+    </style>
+</head>
+<body>
+
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <header>
+        <div class="brand-group"><div class="brand-mark" aria-hidden="true">∿</div>
+            <div><span class="brand-kicker">Laboratorio virtual · UNMSM</span><h1>Análisis Numérico</h1></div>
+        </div>
+        <div class="header-meta"><span class="edition">Ingeniería de Telecomunicaciones · Versión de Ismael</span>
+            <span class="live-status">SIMULACIÓN ACTIVA</span>
+            <button type="button" class="presentation-toggle" id="presentationToggle" aria-pressed="false" onclick="togglePresentationMode()">▣ Modo presentación</button></div>
+    </header>
+
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="openTab(event, 'labTab')">🔬 Óptica LDR</button>
+        <button class="tab-btn" onclick="openTab(event, 'fieldTab')">📡 RF / Drive-Test</button>
+        <button class="tab-btn" onclick="openTab(event, 'turbiTab')">💧 Turbidímetro</button>
+        <button class="tab-btn" onclick="openTab(event, 'compTab')">📊 Matemática</button>
+    </div>
+
+
+    <div class="presentation-toolbar glass-panel" id="presentationToolbar" role="region" aria-label="Herramientas para la exposición" hidden>
+        <div class="presentation-identity"><span class="presentation-tag">● MODO PRESENTACIÓN</span><strong id="presentationTitle">Óptica LDR</strong></div>
+        <label class="presentation-lab-picker" for="presentationLabSelect">Tema
+            <select id="presentationLabSelect" onchange="setPresentationLab(this.value)">
+                <option value="labTab">01 · Óptica LDR</option>
+                <option value="fieldTab">02 · Radiofrecuencia</option>
+                <option value="turbiTab">03 · Turbidimetría</option>
+                <option value="compTab">04 · Fundamentos</option>
+            </select>
+        </label>
+        <div class="presentation-steps" id="presentationSteps" role="group" aria-label="Ir a etapa de exposición">
+            <button type="button" class="presentation-step active" data-presentation-step="experiment" aria-pressed="true" onclick="navigatePresentation('experiment')">01 · Experimento</button>
+            <button type="button" class="presentation-step" data-presentation-step="summary" aria-pressed="false" onclick="navigatePresentation('summary')">02 · Conclusión</button>
+            <button type="button" class="presentation-step" data-presentation-step="analysis" aria-pressed="false" onclick="navigatePresentation('analysis')">03 · Matemática</button>
+        </div>
+        <button type="button" class="presentation-utility" id="presentationFullscreen" onclick="togglePresentationFullscreen()">⛶ Pantalla completa</button>
+        <button type="button" class="presentation-utility presentation-exit" onclick="togglePresentationMode(false)">✕ Salir</button>
+        <p class="presentation-toolbar-note" id="presentationHint">Sigue las etapas de izquierda a derecha. Usa ← → para avanzar y Esc para salir.</p>
+    </div>
+
+    <details class="usage-guide">
+        <summary>ⓘ ¿Cómo usar el simulador? · Guía rápida</summary>
+        <div class="guide-body"><strong>1.</strong> Elige un laboratorio y establece el inicio y final del recorrido.
+            <strong>2.</strong> Pulsa <strong>Iniciar recorrido</strong> para observar el experimento y la curva de mediciones simultáneamente.
+            <strong>3.</strong> Lee la conclusión del recorrido y luego aplica el método numérico en la sección de análisis.
+            El registro manual y el comparador A/B son herramientas opcionales. Las mediciones son simuladas e incluyen un ruido pequeño.</div>
+    </details>
+    <div id="labTab" class="tab-content active">
+        <div class="section-intro"><div><span class="eyebrow">LABORATORIO 01 / ÓPTICA</span>
+            <h2>Atenuación de luz con sensor LDR</h2>
+            <p>Acerca o aleja la fuente luminosa y observa el cambio de voltaje mientras se construye la curva.</p>
+        </div><span class="concept-chip">Distancia ↔ Voltaje</span></div>
+        <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
+            <small>Prueba distintas distancias</small></div><div class="scenario-actions">
+            <button type="button" class="scenario-btn" data-scenario="ldr" data-value="10" onclick="applyScenario('ldr',10)">Cerca · 10 cm</button>
+            <button type="button" class="scenario-btn" data-scenario="ldr" data-value="55" onclick="applyScenario('ldr',55)">Media · 55 cm</button>
+            <button type="button" class="scenario-btn" data-scenario="ldr" data-value="110" onclick="applyScenario('ldr',110)">Lejos · 110 cm</button>
+        </div></div>
+        <section class="auto-run-panel glass-panel" aria-label="Simulación automática ldr">
+            <div class="auto-run-heading"><span class="eyebrow">01 · EXPERIENCIA GUIADA</span><h3>Recorrido automático de la linterna</h3><p>La linterna se moverá entre ambas distancias mientras registramos 21 puntos distribuidos uniformemente.</p></div>
+            <div class="auto-run-form">
+                <label class="auto-field">Inicio (cm)<input type="number" id="autoStart-ldr" min="5" max="120" step="0.1" value="110"></label>
+                <label class="auto-field">Final (cm)<input type="number" id="autoEnd-ldr" min="5" max="120" step="0.1" value="10"></label>
+                <label class="auto-field">Duración (s)<input type="number" id="autoDuration-ldr" min="3" max="30" step="1" value="10"></label>
+                <button type="button" class="auto-run-btn" id="autoButton-ldr" onclick="startAutomaticSweep('ldr')">▶ Iniciar recorrido</button>
+            </div>
+            <div class="sweep-status" id="sweepStatus-ldr" role="status" aria-live="polite">Configura el inicio y final, luego pulsa Iniciar recorrido.</div>
+            <div class="sweep-progress" id="sweepProgress-ldr" role="progressbar" aria-label="Avance del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="sweepBar-ldr"></i></div>
+        </section>
+        <div class="virtual-lab glass-panel">
+            <div class="lab-controls">
+                <div>
+                    <label>Distancia (cm)
+                        <div class="info-tooltip"><span class="icon">i</span><div class="text">Mayor distancia aleja la fuente de luz del sensor, simulando atenuación natural. El voltaje decae según la Ley de la Inversa del Cuadrado.</div></div>
+                    </label>
+                    <input type="range" id="distSlider" min="5" max="120" step="0.1" value="20" oninput="updateLab()">
+                </div>
+                <details class="manual-record"><summary>🎛️ Registro manual (opcional)</summary><div class="manual-record-content">
+                    <label>Tiempo (s)<input type="number" id="recordTimeLab" value="10" min="5" max="30"></label>
+                    <button id="btnRecordLab" onclick="startRecordingLab()">🔴 Grabar moviendo deslizador</button>
+                    <small>Mueve la distancia a mano mientras transcurre el tiempo.</small>
+                </div></details>
+                <button class="btn-danger" onclick="clearDataLab()">🗑️ Borrar datos</button>
+            </div>
+            <div class="live-demo-layout">
+                <div class="demo-scene">
+<div class="simulation-area">
+                <div class="flashlight-container" id="flashlightContainer"><div class="flashlight"></div><div class="light-beam" id="lightBeam"><span class="photon"></span><span class="photon"></span><span class="photon"></span></div></div>
+                <div class="ldr-sensor"></div>
+            </div>
+            <div class="readings" id="liveReadings">Distancia: 20.0 cm | Voltaje: 0.00 V</div>
+                </div>
+                <div class="demo-plot"><div class="demo-plot-head"><strong>● Muestras en tiempo real</strong><span class="live-sample-counter" id="liveCount-ldr">0 puntos</span><small>Voltaje (V) frente a distancia (cm)</small></div><div class="demo-plot-chart"><canvas id="liveChart-ldr" role="img" aria-label="Gráfica que se construye al tomar muestras"></canvas></div></div>
+            </div>
+<div class="telemetry-grid" aria-label="Indicadores del sensor LDR">
+                <div class="telemetry-card"><span class="telemetry-label">Distancia</span><strong class="telemetry-value" id="ldrDistanceMetric">20.0 cm</strong><small class="telemetry-note">Separación entre fuente y sensor</small></div>
+                <div class="telemetry-card"><span class="telemetry-label">Voltaje medido</span><strong class="telemetry-value" id="ldrVoltageMetric">0.00 V</strong><div class="telemetry-meter"><i id="ldrVoltageBar"></i></div></div>
+                <div class="telemetry-card"><span class="telemetry-label">Escala del sensor</span><strong class="telemetry-value" id="ldrScaleMetric">0 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
+            </div>
+        </div>
+
+        <section class="experiment-summary glass-panel" id="experimentSummary-ldr" role="region" aria-label="Conclusión del recorrido ldr" hidden>
+            <div class="summary-top"><span class="eyebrow">02 · INTERPRETACIÓN DEL EXPERIMENTO</span>
+                <h3>¿Qué ocurrió durante el recorrido?</h3>
+                <p>Resumen de las mediciones simuladas del último recorrido automático.</p>
+            </div>
+            <div class="summary-metrics">
+                <div class="summary-stat"><small>Punto inicial</small><strong id="summaryStart-ldr">—</strong></div>
+                <div class="summary-stat"><small>Punto final</small><strong id="summaryEnd-ldr">—</strong></div>
+                <div class="summary-stat featured"><small>Variación final − inicial</small><strong id="summaryDelta-ldr">—</strong></div>
+            </div>
+            <p class="summary-explanation" id="summaryExplanation-ldr"></p>
+            <p class="summary-science" id="summaryScience-ldr">Voltaje y distancia · Valores con ruido simulado; explicación basada en el modelo físico.</p>
+        </section>
+
+        <div class="container">
+            <aside class="controls glass-panel">
+                <label>Datos (d, V) <div class="info-tooltip"><span class="icon">i</span><div class="text">Muestras discretas capturadas por el sensor. Puedes borrar, modificar o añadir puntos de calibración de forma manual.</div></div></label>
+                <textarea id="dataInput" placeholder="Ej: 20.0, 7.26"></textarea>
+                
+                <select id="methodSelect" onchange="toggleInputsLab(); runSimulationLab();" style="margin-top:15px;">
+                    <option value="lagrange">Lagrange Local (Interpolación)</option>
+                    <option value="rk4">RK4 (EDO Logística)</option>
+                    <option value="simpson">Simpson 1/3 (Integrar)</option>
+                </select>
+                <div id="dynamicInputsLab" style="margin-top:10px;"></div>
+                <button class="btn-main" onclick="runSimulationLab()">Aplicar Algoritmo</button>
+            </aside>
+            <main class="visualization glass-panel">
+                <div class="numeric-heading"><div><span class="eyebrow">03 · APLICACIÓN MATEMÁTICA</span><h3>Análisis numérico del LDR</h3></div>
+                    <p id="methodDescription-ldr">Esta gráfica utiliza las muestras para interpolar, resolver la EDO o integrar según el método elegido.</p></div>
+                <div class="chart-container"><canvas id="mainChart"></canvas></div>
+                <div id="resultsLab" class="results-panel">Los datos simulados aparecerán al iniciar el recorrido.</div>
+            </main>
+        </div>
+
+        <details class="compare-panel glass-panel" id="comparePanel-ldr">
+            <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
+                <span class="compare-head"><strong>Extra opcional · Comparador A/B</strong><small>Guarda dos distancias y compara los voltajes del LDR.</small></span>
+                <span class="compare-callout">Abrir herramienta extra</span>
+            </summary>
+            <div class="compare-body">
+                <div class="compare-actions">
+                    <button type="button" class="compare-save-a" onclick="captureComparison('ldr','A')">◉ Guardar escenario A</button>
+                    <button type="button" class="compare-save-b" onclick="captureComparison('ldr','B')">◉ Guardar escenario B</button>
+                    <button type="button" class="compare-clear" onclick="resetComparison('ldr')">↺ Limpiar comparación</button>
+                </div>
+                <div class="compare-slots">
+                    <div class="compare-slot" id="compareSlot-ldr-A" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO A</span><p id="compareCaption-ldr-A">Sin guardar</p>
+                    </div>
+                    <div class="compare-slot compare-b" id="compareSlot-ldr-B" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO B</span><p id="compareCaption-ldr-B">Sin guardar</p>
+                    </div>
+                </div>
+                <p class="compare-hint" id="compareHint-ldr">Ajusta los controles, guarda A; cambia los parámetros y guarda B. Puedes reemplazarlos cuantas veces quieras.</p>
+                <div class="compare-output" id="compareOutput-ldr" role="region" aria-label="Resultados de la comparación" hidden>
+                    <div class="compare-results">
+                        <div class="compare-result a"><small>Resultado A</small><strong id="compareValue-ldr-A">—</strong></div>
+                        <div class="compare-result b"><small>Resultado B</small><strong id="compareValue-ldr-B">—</strong></div>
+                        <div class="compare-result delta"><small>Diferencia B − A</small><strong id="compareValue-ldr-Delta">—</strong></div>
+                    </div>
+                    <div class="compare-chart"><canvas id="compareChart-ldr" aria-label="Gráfica de los escenarios A y B" role="img"></canvas></div>
+                    <small class="compare-footnote">Curva ideal calculada con la ecuación original, sin ruido aleatorio. Pasa el cursor por los puntos o curvas; haz clic en la leyenda para mostrar u ocultar series.</small>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div id="fieldTab" class="tab-content">
+        <div class="section-intro"><div><span class="eyebrow">LABORATORIO 02 / RADIOFRECUENCIA</span>
+            <h2>Cobertura de señal en entornos urbanos</h2>
+            <p>Simula un recorrido y cambia la densidad de edificios para observar la pérdida de potencia recibida.</p>
+        </div><span class="concept-chip">Distancia + Obstáculos → dBm</span></div>
+        <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
+            <small>Misma ruta, distinta densidad urbana</small></div><div class="scenario-actions">
+            <button type="button" class="scenario-btn" data-scenario="rf" data-value="0" onclick="applyScenario('rf',0)">Campo abierto · 0%</button>
+            <button type="button" class="scenario-btn" data-scenario="rf" data-value="50" onclick="applyScenario('rf',50)">Zona mixta · 50%</button>
+            <button type="button" class="scenario-btn" data-scenario="rf" data-value="90" onclick="applyScenario('rf',90)">Zona densa · 90%</button>
+        </div></div>
+        <section class="auto-run-panel glass-panel" aria-label="Simulación automática rf">
+            <div class="auto-run-heading"><span class="eyebrow">01 · EXPERIENCIA GUIADA</span><h3>Recorrido automático del receptor</h3><p>El receptor se alejará de la antena; la densidad urbana permanece fija durante la toma de datos.</p></div>
+            <div class="auto-run-form">
+                <label class="auto-field">Inicio (km)<input type="number" id="autoStart-rf" min="1" max="50" step="0.1" value="1"></label>
+                <label class="auto-field">Final (km)<input type="number" id="autoEnd-rf" min="1" max="50" step="0.1" value="50"></label>
+                <label class="auto-field">Duración (s)<input type="number" id="autoDuration-rf" min="3" max="30" step="1" value="10"></label>
+                <button type="button" class="auto-run-btn" id="autoButton-rf" onclick="startAutomaticSweep('rf')">▶ Iniciar recorrido</button>
+            </div>
+            <div class="sweep-status" id="sweepStatus-rf" role="status" aria-live="polite">Configura el inicio y final, luego pulsa Iniciar recorrido.</div>
+            <div class="sweep-progress" id="sweepProgress-rf" role="progressbar" aria-label="Avance del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="sweepBar-rf"></i></div>
+        </section>
+        <div class="virtual-lab glass-panel">
+            <h3 style="margin:0 0 5px 0; color: var(--neon-blue);">Simulación Drive-Test en Entornos Urbanos</h3>
+            <div class="lab-controls">
+                <div style="display: flex; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 15px;">
+                    <div>
+                        <label>Ruta (km) 
+                            <div class="info-tooltip"><span class="icon">i</span><div class="text">Simula el movimiento de un vehículo alejándose de la torre celular. A mayor distancia, la onda dispersa energía en el espacio libre.</div></div>
+                        </label>
+                        <input type="range" id="distRF" min="1" max="50" step="0.1" value="10" oninput="updateRF()">
+                    </div>
+                    <div>
+                        <label>Dens. Urbana (%) 
+                            <div class="info-tooltip"><span class="icon">i</span><div class="text">Simula edificaciones y concreto en el trayecto. Valores altos absorben y bloquean las ondas, causando una severa atenuación adicional.</div></div>
+                        </label>
+                        <input type="range" id="urbanSlider" min="0" max="100" value="0" oninput="updateRF()">
+                    </div>
+                </div>
+                <details class="manual-record"><summary>🎛️ Registro manual (opcional)</summary><div class="manual-record-content">
+                    <label>Tiempo (s)<input type="number" id="timeRF" value="10" min="5" max="30"></label>
+                    <button id="btnRecordRF" onclick="startRecordingRF()">🔴 Grabar moviendo deslizador</button>
+                    <small>Modifica la ruta manualmente durante la grabación.</small>
+                </div></details>
+                <button class="btn-danger" onclick="clearRF()">🗑️ Borrar datos</button>
+                <div class="compact-inputs">
+                    <div>
+                        <label>Tx(dBm) <div class="info-tooltip"><span class="icon">i</span><div class="text">Potencia de Transmisión. Valores altos inyectan más energía bruta a la señal, extendiendo su alcance máximo antes de morir.</div></div></label>
+                        <input type="number" id="txPower" value="25" style="width:65px;" onchange="updateRF(); runTelecomSimulation()">
+                    </div>
+                    <div>
+                        <label>Ganancia <div class="info-tooltip"><span class="icon">i</span><div class="text">Suma de ganancia direccional (Tx + Rx). Concentra la energía de la onda de forma enfocada en vez de irradiarla omnidireccionalmente.</div></div></label>
+                        <input type="number" id="txGain" value="15" style="width:65px;" onchange="updateRF(); runTelecomSimulation()">
+                    </div>
+                    <div>
+                        <label>F(GHz) <div class="info-tooltip"><span class="icon">i</span><div class="text">Frecuencia de Operación (Ej. 5.8 GHz). Altas frecuencias llevan más ancho de banda pero se atenúan mucho más rápido en el aire.</div></div></label>
+                        <input type="number" id="freqVal" value="5.8" step="0.1" style="width:65px;" onchange="updateRF(); runTelecomSimulation()">
+                    </div>
+                </div>
+            </div>
+            <div class="live-demo-layout">
+                <div class="demo-scene">
+<div class="telecom-visual">
+                <div class="cityscape" id="cityscape"></div>
+                <div class="tower"></div><div class="rf-wave" id="rfWave"></div><div class="rf-receiver" id="rfReceiver" aria-label="Receptor móvil"></div>
+            </div>
+            <div class="readings" id="rfReadings" style="color: var(--warning); text-shadow: none;">Distancia: 10.0 km | Densidad: 0% | Señal: 0 dBm</div>
+                </div>
+                <div class="demo-plot"><div class="demo-plot-head"><strong>● Muestras en tiempo real</strong><span class="live-sample-counter" id="liveCount-rf">0 puntos</span><small>Potencia (dBm) frente a distancia (km)</small></div><div class="demo-plot-chart"><canvas id="liveChart-rf" role="img" aria-label="Gráfica que se construye al tomar muestras"></canvas></div></div>
+            </div>
+<div class="telemetry-grid" aria-label="Indicadores del enlace de radio">
+                <div class="telemetry-card rf-metric"><span class="telemetry-label">Distancia del enlace</span><strong class="telemetry-value" id="rfDistanceMetric">10.0 km</strong><small class="telemetry-note">Trayecto simulado</small></div>
+                <div class="telemetry-card rf-metric"><span class="telemetry-label">Potencia recibida</span><strong class="telemetry-value" id="rfPowerMetric">0.0 dBm</strong><div class="telemetry-meter"><i id="rfPowerBar"></i></div><small class="telemetry-note">Barra visual: −120 a −60 dBm</small></div>
+                <div class="telemetry-card rf-metric"><span class="telemetry-label">Pérdida urbana adicional</span><strong class="telemetry-value" id="rfUrbanMetric">0.0 dB</strong><small class="telemetry-note">Término de atenuación del modelo</small></div>
+            </div>
+        </div>
+
+
+        <section class="experiment-summary glass-panel" id="experimentSummary-rf" role="region" aria-label="Conclusión del recorrido rf" hidden>
+            <div class="summary-top"><span class="eyebrow">02 · INTERPRETACIÓN DEL EXPERIMENTO</span>
+                <h3>¿Qué ocurrió durante el recorrido?</h3>
+                <p>Resumen de las mediciones simuladas del último recorrido automático.</p>
+            </div>
+            <div class="summary-metrics">
+                <div class="summary-stat"><small>Punto inicial</small><strong id="summaryStart-rf">—</strong></div>
+                <div class="summary-stat"><small>Punto final</small><strong id="summaryEnd-rf">—</strong></div>
+                <div class="summary-stat featured"><small>Variación final − inicial</small><strong id="summaryDelta-rf">—</strong></div>
+            </div>
+            <p class="summary-explanation" id="summaryExplanation-rf"></p>
+            <p class="summary-science" id="summaryScience-rf">Potencia y cobertura · Valores con ruido simulado; explicación basada en el modelo físico.</p>
+        </section>
+
+        <div class="container">
+            <aside class="controls glass-panel">
+                <textarea id="dataRF" placeholder="Datos Drive-Test (Km, dBm)"></textarea>
+                <select id="telecomMethod" onchange="toggleInputsTelecom(); runTelecomSimulation();" style="margin-top:15px;">
+                    <option value="lagrange">Lagrange (Rellenar Puntos Ciegos)</option>
+                    <option value="nr">Newton-Raphson (Límite Cobertura)</option>
+                    <option value="rk4">RK4 (EDO Absorción Urbana)</option>
+                    <option value="simpson">Simpson 1/3 (Densidad Espectral)</option>
+                </select>
+                <div id="dynamicInputsTelecom" style="margin-top:10px;"></div>
+                <button class="btn-main" onclick="runTelecomSimulation()">Ejecutar Análisis RF</button>
+            </aside>
+            <main class="visualization glass-panel">
+                <div class="numeric-heading"><div><span class="eyebrow">03 · APLICACIÓN MATEMÁTICA</span><h3>Análisis numérico de cobertura</h3></div>
+                    <p id="methodDescription-rf">Esta gráfica combina las mediciones con las curvas y estimaciones del método seleccionado.</p></div>
+                <div class="chart-container"><canvas id="telecomChart"></canvas></div>
+                <div id="telecomResults" class="results-panel" style="border-left-color: var(--warning);">Selecciona un método. Si no hay datos grabados, se usará la teoría ideal.</div>
+            </main>
+        </div>
+
+        <details class="compare-panel glass-panel" id="comparePanel-rf">
+            <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
+                <span class="compare-head"><strong>Extra opcional · Comparador A/B</strong><small>Contrasta densidad urbana, distancia y configuración del enlace.</small></span>
+                <span class="compare-callout">Abrir herramienta extra</span>
+            </summary>
+            <div class="compare-body">
+                <div class="compare-actions">
+                    <button type="button" class="compare-save-a" onclick="captureComparison('rf','A')">◉ Guardar escenario A</button>
+                    <button type="button" class="compare-save-b" onclick="captureComparison('rf','B')">◉ Guardar escenario B</button>
+                    <button type="button" class="compare-clear" onclick="resetComparison('rf')">↺ Limpiar comparación</button>
+                </div>
+                <div class="compare-slots">
+                    <div class="compare-slot" id="compareSlot-rf-A" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO A</span><p id="compareCaption-rf-A">Sin guardar</p>
+                    </div>
+                    <div class="compare-slot compare-b" id="compareSlot-rf-B" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO B</span><p id="compareCaption-rf-B">Sin guardar</p>
+                    </div>
+                </div>
+                <p class="compare-hint" id="compareHint-rf">Ajusta los controles, guarda A; cambia los parámetros y guarda B. Puedes reemplazarlos cuantas veces quieras.</p>
+                <div class="compare-output" id="compareOutput-rf" role="region" aria-label="Resultados de la comparación" hidden>
+                    <div class="compare-results">
+                        <div class="compare-result a"><small>Resultado A</small><strong id="compareValue-rf-A">—</strong></div>
+                        <div class="compare-result b"><small>Resultado B</small><strong id="compareValue-rf-B">—</strong></div>
+                        <div class="compare-result delta"><small>Diferencia B − A</small><strong id="compareValue-rf-Delta">—</strong></div>
+                    </div>
+                    <div class="compare-chart"><canvas id="compareChart-rf" aria-label="Gráfica de los escenarios A y B" role="img"></canvas></div>
+                    <small class="compare-footnote">Curvas teóricas de pérdida de trayectoria, sin ruido aleatorio. Pasa el cursor por los puntos o curvas; haz clic en la leyenda para mostrar u ocultar series.</small>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div id="turbiTab" class="tab-content">
+        <div class="section-intro"><div><span class="eyebrow">LABORATORIO 03 / INSTRUMENTACIÓN</span>
+            <h2>Calidad óptica del agua</h2>
+            <p>Ajusta la turbidez y observa la atenuación de luz en el sensor mediante el modelo de Beer-Lambert.</p>
+        </div><span class="concept-chip">Turbidez ↑ · Luz ↓</span></div>
+        <div class="scenario-strip"><div class="scenario-label">✦ Escenarios rápidos
+            <small>Prueba niveles de concentración</small></div><div class="scenario-actions">
+            <button type="button" class="scenario-btn" data-scenario="turbi" data-value="5" onclick="applyScenario('turbi',5)">Agua clara · 5 NTU</button>
+            <button type="button" class="scenario-btn" data-scenario="turbi" data-value="40" onclick="applyScenario('turbi',40)">Moderada · 40 NTU</button>
+            <button type="button" class="scenario-btn" data-scenario="turbi" data-value="90" onclick="applyScenario('turbi',90)">Muy turbia · 90 NTU</button>
+        </div></div>
+        <section class="auto-run-panel glass-panel" aria-label="Simulación automática turbi">
+            <div class="auto-run-heading"><span class="eyebrow">01 · EXPERIENCIA GUIADA</span><h3>Barrido automático de turbidez</h3><p>El agua cambiará de concentración mientras se construye la curva del sensor.</p></div>
+            <div class="auto-run-form">
+                <label class="auto-field">Inicio (NTU)<input type="number" id="autoStart-turbi" min="0" max="100" step="0.1" value="5"></label>
+                <label class="auto-field">Final (NTU)<input type="number" id="autoEnd-turbi" min="0" max="100" step="0.1" value="90"></label>
+                <label class="auto-field">Duración (s)<input type="number" id="autoDuration-turbi" min="3" max="30" step="1" value="10"></label>
+                <button type="button" class="auto-run-btn" id="autoButton-turbi" onclick="startAutomaticSweep('turbi')">▶ Iniciar recorrido</button>
+            </div>
+            <div class="sweep-status" id="sweepStatus-turbi" role="status" aria-live="polite">Configura el inicio y final, luego pulsa Iniciar recorrido.</div>
+            <div class="sweep-progress" id="sweepProgress-turbi" role="progressbar" aria-label="Avance del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="sweepBar-turbi"></i></div>
+        </section>
+        <div class="virtual-lab glass-panel">
+            <h3 style="margin:0 0 5px 0; color: var(--neon-blue);">Turbidímetro Industrial</h3>
+            <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--text-muted);">Monitoreo continuo para eventos de contaminación en tuberías.</p>
+            
+            <div class="lab-controls">
+                <div>
+                    <label>Concentración (NTU)
+                        <div class="info-tooltip"><span class="icon">i</span><div class="text">Unidades de turbidez (Nephelometric Turbidity Units). Aumentar esto simula partículas de lodo o químicos bloqueando la luz en el agua.</div></div>
+                    </label>
+                    <input type="range" id="turbiSlider" min="0" max="100" step="0.1" value="0" oninput="updateTurbi()">
+                </div>
+                <details class="manual-record"><summary>🎛️ Registro manual (opcional)</summary><div class="manual-record-content">
+                    <label>Tiempo (s)<input type="number" id="turbiRecordTime" value="10" min="5" max="30"></label>
+                    <button id="btnRecordTurbi" onclick="startRecordingTurbi()">🔴 Grabar moviendo deslizador</button>
+                    <button class="btn-warning" id="btnTurbiSingle" onclick="takeTurbiSample()">💧 Tomar muestra puntual</button>
+                    <small>Cambia el NTU a mano o toma una muestra individual.</small>
+                </div></details>
+                <button class="btn-danger" onclick="clearTurbi()">🗑️ Borrar datos</button>
+            </div>
+            <div class="live-demo-layout">
+                <div class="demo-scene">
+<div class="tank-container">
+                <div class="water-murkiness" id="waterMurkiness"></div>
+                <div class="turbi-laser"></div>
+                <div class="turbi-beam" id="turbiBeam"></div>
+                <div class="turbi-sensor" id="turbiSensor"></div>
+                <div class="water-particles" id="waterParticles" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="readings" id="turbiReadings">Turbidez: 0 NTU | Sensor: 9.00 V</div>
+                </div>
+                <div class="demo-plot"><div class="demo-plot-head"><strong>● Muestras en tiempo real</strong><span class="live-sample-counter" id="liveCount-turbi">0 puntos</span><small>Voltaje (V) frente a turbidez (NTU)</small></div><div class="demo-plot-chart"><canvas id="liveChart-turbi" role="img" aria-label="Gráfica que se construye al tomar muestras"></canvas></div></div>
+            </div>
+<div class="telemetry-grid" aria-label="Indicadores del turbidímetro">
+                <div class="telemetry-card turbi-metric"><span class="telemetry-label">Concentración</span><strong class="telemetry-value" id="turbiNtuMetric">0 NTU</strong><small class="telemetry-note">Nivel de turbidez simulado</small></div>
+                <div class="telemetry-card turbi-metric"><span class="telemetry-label">Voltaje del sensor</span><strong class="telemetry-value" id="turbiVoltageMetric">9.00 V</strong><div class="telemetry-meter"><i id="turbiVoltageBar"></i></div></div>
+                <div class="telemetry-card turbi-metric"><span class="telemetry-label">Señal relativa</span><strong class="telemetry-value" id="turbiRelativeMetric">100 %</strong><small class="telemetry-note">Porcentaje respecto a 9 V</small></div>
+            </div>
+        </div>
+
+
+        <section class="experiment-summary glass-panel" id="experimentSummary-turbi" role="region" aria-label="Conclusión del recorrido turbi" hidden>
+            <div class="summary-top"><span class="eyebrow">02 · INTERPRETACIÓN DEL EXPERIMENTO</span>
+                <h3>¿Qué ocurrió durante el recorrido?</h3>
+                <p>Resumen de las mediciones simuladas del último recorrido automático.</p>
+            </div>
+            <div class="summary-metrics">
+                <div class="summary-stat"><small>Punto inicial</small><strong id="summaryStart-turbi">—</strong></div>
+                <div class="summary-stat"><small>Punto final</small><strong id="summaryEnd-turbi">—</strong></div>
+                <div class="summary-stat featured"><small>Variación final − inicial</small><strong id="summaryDelta-turbi">—</strong></div>
+            </div>
+            <p class="summary-explanation" id="summaryExplanation-turbi"></p>
+            <p class="summary-science" id="summaryScience-turbi">Transmisión de luz · Valores con ruido simulado; explicación basada en el modelo físico.</p>
+        </section>
+
+        <div class="container">
+            <aside class="controls glass-panel">
+                <textarea id="turbiData" placeholder="Datos de Calibración (NTU, V)"></textarea>
+                <select id="turbiMethod" onchange="toggleInputsTurbi(); runTurbiSimulation();" style="margin-top:15px;">
+                    <option value="lagrange">Lagrange (Calibración Suave)</option>
+                    <option value="nr">Newton-Raphson (Alarma Crítica)</option>
+                    <option value="rk4">RK4 (EDO de Absorción)</option>
+                    <option value="simpson">Simpson 1/3 (Opacidad Total)</option>
+                </select>
+                <div id="turbiDynamic" style="margin-top:10px;"></div>
+                <button class="btn-main" onclick="runTurbiSimulation()">Analizar Fluido</button>
+            </aside>
+            <main class="visualization glass-panel">
+                <div class="numeric-heading"><div><span class="eyebrow">03 · APLICACIÓN MATEMÁTICA</span><h3>Análisis numérico del turbidímetro</h3></div>
+                    <p id="methodDescription-turbi">Esta gráfica muestra la calibración o el resultado del método aplicado a las muestras.</p></div>
+                <div class="chart-container"><canvas id="turbiChart"></canvas></div>
+                <div id="turbiResults" class="results-panel">Selecciona un método para analizar las muestras del fluido.</div>
+            </main>
+        </div>
+
+        <details class="compare-panel glass-panel" id="comparePanel-turbi">
+            <summary><span class="compare-symbol" aria-hidden="true">⇄</span>
+                <span class="compare-head"><strong>Extra opcional · Comparador A/B</strong><small>Compara dos concentraciones y sus voltajes de salida.</small></span>
+                <span class="compare-callout">Abrir herramienta extra</span>
+            </summary>
+            <div class="compare-body">
+                <div class="compare-actions">
+                    <button type="button" class="compare-save-a" onclick="captureComparison('turbi','A')">◉ Guardar escenario A</button>
+                    <button type="button" class="compare-save-b" onclick="captureComparison('turbi','B')">◉ Guardar escenario B</button>
+                    <button type="button" class="compare-clear" onclick="resetComparison('turbi')">↺ Limpiar comparación</button>
+                </div>
+                <div class="compare-slots">
+                    <div class="compare-slot" id="compareSlot-turbi-A" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO A</span><p id="compareCaption-turbi-A">Sin guardar</p>
+                    </div>
+                    <div class="compare-slot compare-b" id="compareSlot-turbi-B" data-filled="false">
+                        <span class="compare-slot-title">ESCENARIO B</span><p id="compareCaption-turbi-B">Sin guardar</p>
+                    </div>
+                </div>
+                <p class="compare-hint" id="compareHint-turbi">Ajusta los controles, guarda A; cambia los parámetros y guarda B. Puedes reemplazarlos cuantas veces quieras.</p>
+                <div class="compare-output" id="compareOutput-turbi" role="region" aria-label="Resultados de la comparación" hidden>
+                    <div class="compare-results">
+                        <div class="compare-result a"><small>Resultado A</small><strong id="compareValue-turbi-A">—</strong></div>
+                        <div class="compare-result b"><small>Resultado B</small><strong id="compareValue-turbi-B">—</strong></div>
+                        <div class="compare-result delta"><small>Diferencia B − A</small><strong id="compareValue-turbi-Delta">—</strong></div>
+                    </div>
+                    <div class="compare-chart"><canvas id="compareChart-turbi" aria-label="Gráfica de los escenarios A y B" role="img"></canvas></div>
+                    <small class="compare-footnote">Curva Beer-Lambert con los parámetros actuales del modelo, sin ruido aleatorio. Pasa el cursor por los puntos o curvas; haz clic en la leyenda para mostrar u ocultar series.</small>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div id="compTab" class="tab-content">
+        <div class="section-intro"><div><span class="eyebrow">FUNDAMENTO CIENTÍFICO / MODELOS</span>
+            <h2>¿Qué matemáticas hay detrás?</h2>
+            <p>Estas ecuaciones conectan lo que ves en pantalla con los algoritmos que procesan las muestras simuladas.</p>
+        </div><span class="concept-chip">Lagrange · RK4 · Simpson · Newton</span></div>
+        <div class="analysis-container">
+            <div class="card glass-panel">
+                <h3>1. Óptica: EDO del LDR
+                    <div class="info-tooltip"><span class="icon">i</span><div class="text">El algoritmo numérico Runge-Kutta 4 (RK4) simula esta ecuación diferencial integrándola por "pasos" h para construir la gráfica ideal de decaimiento.</div></div>
+                </h3>
+                <p>El arreglo del divisor de voltaje genera una curva no lineal. Se deduce la siguiente Ecuación Diferencial Ordinaria (EDO), que dicta la tasa exacta de caída lumínica:</p>
+                <div class="math-box">
+                    $$ \frac{dV}{dd} = -\frac{\gamma}{d} \cdot V \left( 1 - \frac{V}{9} \right) $$
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Donde \( V \) es el voltaje medido, \( d \) es la distancia, y \( \gamma \approx 1.6 \) es el coeficiente empírico de sensibilidad.</p>
+            </div>
+
+            <div class="card glass-panel">
+                <h3>2. Radiofrecuencia: Path Loss y Densidad Urbana
+                    <div class="info-tooltip"><span class="icon">i</span><div class="text">N-R usa la derivada de esta función para ubicar rápidamente (en menos de 5 iteraciones) el kilómetro exacto donde la señal choca con el piso de ruido.</div></div>
+                </h3>
+                <p>La pérdida de trayectoria (FSPL) decae logarítmicamente. Al introducir "Densidad Urbana" ($U$), añadimos un factor de absorción lineal a la derivada (resoluble de nuevo por RK4):</p>
+                <div class="math-box">
+                    $$ P_{rx}(d) = P_{tx} + G - 20\log_{10}(d) - 20\log_{10}(f) - 92.45 - \left(\frac{U}{100} \cdot \alpha \cdot d\right) $$
+                </div>
+                <div class="math-box">
+                    $$ \frac{dP}{dd} = -\frac{8.686}{d} - \alpha_{urbana} $$
+                </div>
+            </div>
+
+            <div class="card glass-panel">
+                <h3>3. Turbidimetría: Beer-Lambert
+                    <div class="info-tooltip"><span class="icon">i</span><div class="text">La interpolación matemática de Lagrange se usa aquí para trazar una curva de calibración suave entre mediciones, permitiendo predecir estados intermedios del líquido.</div></div>
+                </h3>
+                <p>En medios fluidos la luz sufre absorción molecular de fotones, un comportamiento drástico gobernado por la <strong>Ley de Beer-Lambert</strong>:</p>
+                <div class="math-box">
+                    $$ I = I_0 \cdot e^{-\alpha \cdot C \cdot x} \implies V(C) = V_{max} \cdot e^{-k \cdot C} $$
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN GLOBAL CHART.JS ---
+        Chart.defaults.color = '#a0aec0';
+        Chart.defaults.font.family = "'Manrope', sans-serif";
+        const gridConfig = { color: 'rgba(255, 255, 255, 0.05)' };
+        const chartOptionsBase = {
+            responsive: true, maintainAspectRatio: false, animation: false,
+            interaction: { mode: 'nearest', intersect: false },
+            scales: { x: { grid: gridConfig, title: { display: true, color: '#00d2ff', font: {weight: 'bold'} } }, y: { grid: gridConfig, title: { display: true, color: '#00d2ff', font: {weight: 'bold'} } } },
+            plugins: { legend: { labels: { color: '#ffffff', usePointStyle: true } },
+                tooltip: { enabled: true, backgroundColor: 'rgba(7, 23, 43, 0.96)', borderColor: 'rgba(83, 219, 208, 0.5)', borderWidth: 1, padding: 10 } }
+        };
+
+        let myChart = null, telecomChartObj = null, turbiChartObj = null;
+        let recordingTimerLab = null, recordingTimerTurbi = null, recordingTimerRF = null;
+
+
+        // Adquisición guiada: 21 muestras espaciales, independientemente de la tasa de imágenes.
+        const sweepTypes = {
+            ldr:{slider:'distSlider', data:'dataInput', min:5, max:120, unit:'cm',
+                sample:(x) => calculateVirtualVoltage(x), visualize:() => updateLab(),
+                analyze:() => runSimulationLab(), manual:'btnRecordLab', fixed:[]},
+            rf:{slider:'distRF', data:'dataRF', min:1, max:50, unit:'km',
+                sample:(x, p) => getRFPower(x,p.urban,p.ptx,p.g,p.f),
+                visualize:() => updateRF(), analyze:() => runTelecomSimulation(),
+                manual:'btnRecordRF', fixed:['urbanSlider','txPower','txGain','freqVal']},
+            turbi:{slider:'turbiSlider', data:'turbiData', min:0, max:100, unit:'NTU',
+                sample:(x) => getTurbiVolt(x), visualize:() => updateTurbi(),
+                analyze:() => runTurbiSimulation(), manual:'btnRecordTurbi', fixed:[]}
+        };
+        const activeSweeps = {}, liveSampleCharts = {};
+        const liveSampleAxes = {
+            ldr:{x:'Distancia (cm)',y:'Voltaje (V)',xUnit:'cm',yUnit:'V',min:5,max:120, yMin:0,yMax:9.5,color:'#4ee7d5'},
+            rf:{x:'Distancia (km)',y:'Potencia (dBm)',xUnit:'km',yUnit:'dBm',min:1,max:50,color:'#f6bc6b'},
+            turbi:{x:'Turbidez (NTU)',y:'Voltaje (V)',xUnit:'NTU',yUnit:'V',min:0,max:100,yMin:0,yMax:9.5,color:'#88b5ff'}
+        };
+        function syncLiveChart(type) {
+            const cfg = sweepTypes[type], axes = liveSampleAxes[type], canvas = document.getElementById('liveChart-' + type);
+            if (!canvas || typeof Chart === 'undefined') return;
+            const samples = parseData(cfg.data);
+            if (!liveSampleCharts[type]) {
+                liveSampleCharts[type] = new Chart(canvas.getContext('2d'), {
+                    type:'scatter',
+                    plugins:[livePositionPlugin],
+                    data:{datasets:[{
+                        label:'Muestras simuladas',data:[],showLine:true,pointRadius:3.4,
+                        pointHoverRadius:6,borderWidth:2.5,backgroundColor:axes.color,borderColor:axes.color,
+                        tension:0.12,fill:false
+                    }]},
+                    options:{
+                        responsive:true,maintainAspectRatio:false,animation:false,
+                        interaction:{mode:'nearest',intersect:false},
+                        scales:{
+                            x:{type:'linear',min:axes.min,max:axes.max,
+                                title:{display:true,text:axes.x,color:'#a1cec9',font:{size:10}},
+                                grid:{color:'rgba(134,189,204,.09)'},ticks:{color:'#9db8cb',font:{size:10}}},
+                            y:{type:'linear',min:axes.yMin,max:axes.yMax,
+                                title:{display:true,text:axes.y,color:'#a1cec9',font:{size:10}},
+                                grid:{color:'rgba(134,189,204,.09)'},ticks:{color:'#9db8cb',font:{size:10}}}
+                        },
+                        plugins:{
+                            legend:{display:false},
+                            tooltip:{backgroundColor:'rgba(5,24,40,.96)',padding:10,
+                                callbacks:{label(ctx){return ctx.parsed.x.toFixed(2)+' '+axes.xUnit+' → '+ctx.parsed.y.toFixed(2)+' '+axes.yUnit;}}}
+                        }
+                    }
+                });
+            }
+            const sampleCount = document.getElementById('liveCount-' + type);
+            if (sampleCount) sampleCount.textContent = samples.length + ' puntos capturados';
+            liveSampleCharts[type].data.datasets[0].data = samples;
+            liveSampleCharts[type].$cursorPosition = Number(document.getElementById(cfg.slider).value);
+            liveSampleCharts[type].update('none');
+        }
+
+        // Marcador de posición del experimento; no añade puntos ni altera cálculos.
+        const livePositionPlugin = {
+            id:'livePositionMarker',
+            afterDatasetsDraw(chart) {
+                const value = chart.$cursorPosition;
+                if (!Number.isFinite(value) || !chart.chartArea || !chart.scales.x) return;
+                const px = chart.scales.x.getPixelForValue(value), bounds = chart.chartArea;
+                if (px < bounds.left || px > bounds.right) return;
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();ctx.setLineDash([5,4]);ctx.lineWidth = 1.8;
+                ctx.strokeStyle = 'rgba(252,199,106,.87)';
+                ctx.moveTo(px,bounds.top);ctx.lineTo(px,bounds.bottom);ctx.stroke();
+                ctx.setLineDash([]);
+                const points = chart.data.datasets[0] && chart.data.datasets[0].data;
+                if (points && points.length) {
+                    const nearest = points.reduce((a,b) =>
+                        Math.abs(a.x-value) < Math.abs(b.x-value) ? a : b);
+                    const py = chart.scales.y.getPixelForValue(nearest.y);
+                    if (Number.isFinite(py) && py >= bounds.top && py <= bounds.bottom) {
+                        ctx.beginPath();ctx.arc(chart.scales.x.getPixelForValue(nearest.x),py,6,0,Math.PI*2);
+                        ctx.fillStyle = 'rgba(251,190,105,.22)';ctx.fill();
+                        ctx.beginPath();ctx.arc(chart.scales.x.getPixelForValue(nearest.x),py,3.2,0,Math.PI*2);
+                        ctx.fillStyle = '#ffcf83';ctx.fill();
+                    }
+                }
+                ctx.restore();
+            }
+        };
+        function updateLiveCursor(type, value) {
+            const chart = liveSampleCharts[type];
+            if (!chart || !Number.isFinite(value)) return;
+            chart.$cursorPosition = value;
+            chart.draw();
+        }
+
+        // Explicaciones comprensibles, sin modificar los algoritmos numéricos.
+        const methodExplanations = {
+            ldr:{
+                lagrange:'Lagrange estima el voltaje en una distancia intermedia usando los puntos capturados.',
+                rk4:'Runge-Kutta 4 construye una solución numérica de la ecuación diferencial del sensor.',
+                simpson:'Simpson 1/3 aproxima el área bajo la curva de voltaje frente a distancia.'
+            },
+            rf:{
+                lagrange:'Lagrange interpola la potencia recibida en un punto de la ruta que no fue muestreado.',
+                nr:'Newton-Raphson estima dónde se alcanza el umbral crítico de cobertura.',
+                rk4:'Runge-Kutta 4 integra el modelo diferencial de pérdida de potencia.',
+                simpson:'Simpson 1/3 aproxima la integral de la potencia expresada en dBm a lo largo de la ruta.'
+            },
+            turbi:{
+                lagrange:'Lagrange genera una curva de calibración a partir de las muestras del sensor.',
+                nr:'Newton-Raphson estima la turbidez asociada al voltaje de alarma.',
+                rk4:'Runge-Kutta 4 aproxima la solución de la ecuación diferencial de Beer-Lambert.',
+                simpson:'Simpson 1/3 aproxima el área bajo la curva voltaje–turbidez.'
+            }
+        };
+        function updateMethodDescription(type) {
+            const ids = {ldr:'methodSelect',rf:'telecomMethod',turbi:'turbiMethod'};
+            const method = document.getElementById(ids[type]).value;
+            document.getElementById('methodDescription-' + type).textContent =
+                methodExplanations[type][method] || 'Se muestran los datos y el resultado del método seleccionado.';
+        }
+        function clearExperimentSummary(type) {
+            const panel = document.getElementById('experimentSummary-' + type);
+            if (panel) panel.hidden = true;
+        }
+        function renderExperimentSummary(type, samples, parameters) {
+            if (!Array.isArray(samples) || samples.length < 2) return;
+            const first = samples[0], last = samples[samples.length-1];
+            if (![first.x,first.y,last.x,last.y].every(Number.isFinite)) return;
+            const xUnit = sweepTypes[type].unit, yUnit = type === 'rf' ? 'dBm' : 'V';
+            const dx = last.x - first.x, dy = last.y - first.y;
+            const pct = first.y !== 0 ? dy/Math.abs(first.y)*100 : null;
+            const signed = dy < 0 ? '−' : '+';
+            const change = signed + Math.abs(dy).toFixed(2) + (type === 'rf' ? ' dB' : ' V');
+            const percentLabel = type === 'rf' || !Number.isFinite(pct) ? '' :
+                ' (' + (pct < 0 ? '−' : '+') + Math.abs(pct).toFixed(1) + ' %)';
+            document.getElementById('summaryStart-' + type).textContent =
+                first.x.toFixed(1) + ' ' + xUnit + ' · ' + first.y.toFixed(2) + ' ' + yUnit;
+            document.getElementById('summaryEnd-' + type).textContent =
+                last.x.toFixed(1) + ' ' + xUnit + ' · ' + last.y.toFixed(2) + ' ' + yUnit;
+            document.getElementById('summaryDelta-' + type).textContent = change + percentLabel;
+            let explanation, science;
+            if (type === 'ldr') {
+                explanation = dx < 0
+                    ? 'La linterna se acercó al sensor. Al disminuir la distancia, el modelo predice mayor iluminación y, por ello, mayor voltaje de salida.'
+                    : 'La linterna se alejó del sensor. Al aumentar la distancia, el modelo predice menor iluminación y menor voltaje de salida.';
+                science = 'Modelo óptico y respuesta del LDR. El porcentaje compara el voltaje final con el inicial; las lecturas incluyen ruido simulado.';
+            } else if (type === 'rf') {
+                const density = parameters && Number.isFinite(parameters.urban) ? parameters.urban.toFixed(0) : '0';
+                explanation = dx > 0
+                    ? 'El receptor se alejó de la antena. La pérdida de trayectoria aumenta con la distancia y la potencia recibida suele disminuir.'
+                    : 'El receptor se acercó a la antena. Al reducirse la pérdida de trayectoria, la potencia recibida suele aumentar.';
+                explanation += ' Se mantuvo la densidad urbana en ' + density + ' %.';
+                science = 'Modelo de propagación con atenuación urbana. La diferencia entre valores en dBm se expresa en dB; no se interpreta como porcentaje lineal.';
+            } else {
+                explanation = dx > 0
+                    ? 'El agua se volvió más turbia. Según Beer-Lambert, las partículas atenúan más luz y el sensor registra menor voltaje.'
+                    : 'El agua se volvió más clara. Según Beer-Lambert, disminuye la atenuación y llega más luz al sensor.';
+                science = 'Ley de Beer-Lambert. El porcentaje expresa el cambio de voltaje respecto a la primera muestra, con un pequeño ruido simulado.';
+            }
+            document.getElementById('summaryExplanation-' + type).textContent = explanation;
+            document.getElementById('summaryScience-' + type).textContent = science;
+            document.getElementById('experimentSummary-' + type).hidden = false;
+        }
+
+        function showSweepStatus(type, message, percentage) {
+            document.getElementById('sweepStatus-' + type).textContent = message;
+            document.getElementById('sweepBar-' + type).style.width = percentage + '%';
+            document.getElementById('sweepProgress-' + type).setAttribute('aria-valuenow', String(Math.round(percentage)));
+        }
+        function stopManualRecorder(type) {
+            if (type === 'ldr') { clearInterval(recordingTimerLab); recordingTimerLab = null; }
+            else if (type === 'rf') { clearInterval(recordingTimerRF); recordingTimerRF = null; }
+            else { clearInterval(recordingTimerTurbi); recordingTimerTurbi = null; }
+            const button = document.getElementById(sweepTypes[type].manual);
+            button.disabled = false;
+            button.textContent = '🔴 Grabar moviendo deslizador';
+        }
+        function stopAutomaticSweep(type, reason) {
+            const current = activeSweeps[type];
+            if (!current) return;
+            cancelAnimationFrame(current.raf);
+            for (const element of current.locked) element.disabled = false;
+            delete activeSweeps[type];
+            document.getElementById('autoButton-' + type).textContent = '▶ Iniciar recorrido';
+            if (reason === 'clear') {
+                clearExperimentSummary(type);
+                showSweepStatus(type, 'Datos eliminados. Puedes iniciar otro recorrido.', 0);
+            } else {
+                const count = parseData(sweepTypes[type].data).length;
+                showSweepStatus(type, reason === 'complete'
+                    ? '✓ Recorrido completo: '+count+' muestras. Consulta la conclusión debajo del experimento.'
+                    : 'Recorrido detenido: '+count+' muestras conservadas.', reason === 'complete' ? 100 : current.lastPercent);
+                sweepTypes[type].analyze();
+                if (reason === 'complete') renderExperimentSummary(type, current.samples, current.parameters);
+                else clearExperimentSummary(type);
+            }
+        }
+        function startAutomaticSweep(type) {
+            if (activeSweeps[type]) { stopAutomaticSweep(type, 'stopped'); return; }
+            const cfg = sweepTypes[type];
+            if (!cfg) return;
+            const initialEl = document.getElementById('autoStart-' + type);
+            const finalEl = document.getElementById('autoEnd-' + type);
+            const durationEl = document.getElementById('autoDuration-' + type);
+            const initial = Number(initialEl.value), final = Number(finalEl.value), duration = Number(durationEl.value);
+            if (!initialEl.value || !finalEl.value || !durationEl.value ||
+                ![initial, final, duration].every(Number.isFinite) ||
+                initial < cfg.min || initial > cfg.max || final < cfg.min || final > cfg.max ||
+                initial === final || duration < 3 || duration > 30) {
+                showSweepStatus(type, 'Revisa el rango de distancias/concentraciones y utiliza una duración entre 3 y 30 s. Inicio y final deben ser distintos.', 0);
+                return;
+            }
+            stopManualRecorder(type);
+            const parameters = type === 'rf' ? {
+                urban:Number(document.getElementById('urbanSlider').value),
+                ptx:Number(document.getElementById('txPower').value),
+                g:Number(document.getElementById('txGain').value),
+                f:Number(document.getElementById('freqVal').value)
+            } : {};
+            if (type === 'rf' && (![parameters.urban,parameters.ptx,parameters.g,parameters.f].every(Number.isFinite) || parameters.f <= 0)) {
+                showSweepStatus(type, 'Verifica los parámetros del enlace: la frecuencia debe ser positiva.', 0);
+                return;
+            }
+            const locked = [initialEl,finalEl,durationEl,document.getElementById(cfg.slider),
+                document.getElementById(cfg.manual),...cfg.fixed.map(id => document.getElementById(id)),
+                ...document.querySelectorAll('.scenario-btn[data-scenario="' + type + '"]')].filter(Boolean);
+            if (type === 'turbi') {
+                const button = document.getElementById('btnTurbiSingle');
+                if (button) locked.push(button);
+            }
+            locked.forEach(el => {el.disabled = true;});
+            const area = document.getElementById(cfg.data);
+            area.value = '';
+            clearExperimentSummary(type);
+            cfg.analyze();
+            document.getElementById('autoButton-' + type).textContent = '■ Detener recorrido';
+            const total = 20; // 20 intervalos = 21 muestras, incluyendo los extremos
+            let startTimestamp = null, next = 0, lastVisual = -Infinity;
+            const state = {raf:0,locked,lastPercent:0,samples:[],parameters};
+            activeSweeps[type] = state;
+            function animate(timestamp) {
+                if (activeSweeps[type] !== state) return;
+                if (startTimestamp === null) startTimestamp = timestamp;
+                const elapsed = Math.min(1, (timestamp - startTimestamp)/(duration*1000));
+                const actualPosition = initial + (final - initial)*elapsed;
+                document.getElementById(cfg.slider).value = actualPosition.toFixed(2);
+                if (timestamp - lastVisual > 80 || elapsed >= 1) {
+                    cfg.visualize();
+                    lastVisual = timestamp;
+                }
+                let changed = false;
+                while (next <= total && elapsed + 1e-9 >= next / total) {
+                    const x = initial + (final - initial)*next/total;
+                    const y = cfg.sample(x,parameters);
+                    const recorded = {x:Number(x.toFixed(2)),y:Number(y.toFixed(2))};
+                    state.samples.push(recorded);
+                    area.value += (area.value ? '\n' : '') + recorded.x.toFixed(2) + ', ' + recorded.y.toFixed(2);
+                    next++;
+                    changed = true;
+                }
+                if (changed) {
+                    area.scrollTop = area.scrollHeight;
+                    syncLiveChart(type);
+                }
+                state.lastPercent = elapsed * 100;
+                showSweepStatus(type,'Recorriendo… '+next+'/21 muestras · '+
+                    (duration * (1-elapsed)).toFixed(1)+' s restantes', state.lastPercent);
+                if (elapsed >= 1) stopAutomaticSweep(type,'complete');
+                else state.raf = requestAnimationFrame(animate);
+            }
+            state.raf = requestAnimationFrame(animate);
+            const stage = document.getElementById('liveChart-' + type).closest('.live-demo-layout');
+            if (stage) stage.scrollIntoView({behavior:'smooth',block:'center'});
+        }
+
+        function openTab(evt, tabName) {
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            
+            if(tabName === 'labTab') runSimulationLab();
+            if(tabName === 'fieldTab') runTelecomSimulation();
+            if(tabName === 'turbiTab') runTurbiSimulation();
+            if(tabName === 'compTab' && window.MathJax) MathJax.typesetPromise();
+            if (document.body.classList.contains('presentation-mode')) updatePresentationToolbar();
+        }
+
+        // --- MATEMÁTICAS PROTEGIDAS ---
+        function lagrangeBase(data, xEval) {
+            let y = 0;
+            for (let i = 0; i < data.length; i++) {
+                let t = data[i].y;
+                for (let j = 0; j < data.length; j++) if (i !== j && data[i].x !== data[j].x) t *= (xEval - data[j].x) / (data[i].x - data[j].x);
+                y += t;
+            } return y;
+        }
+        function lagrangeLocal(data, xEval) {
+            if(data.length < 2) return 0;
+            if(data.length <= 4) return lagrangeBase(data, xEval);
+            let sortedByDist = [...data].sort((a,b) => Math.abs(a.x - xEval) - Math.abs(b.x - xEval));
+            return lagrangeBase(sortedByDist.slice(0, 4), xEval);
+        }
+        function parseData(elementId) {
+            let m = new Map(); 
+            document.getElementById(elementId).value.trim().split('\n').forEach(l => {
+                const p = l.split(','); if(p.length>=2 && !isNaN(p[0]) && !isNaN(p[1])) m.set(parseFloat(p[0]), parseFloat(p[p.length-1]));
+            });
+            return Array.from(m, ([x, y]) => ({ x, y })).sort((a, b) => a.x - b.x); 
+        }
+
+        // --- 1. LDR ---
+        function calculateVirtualVoltage(d) { return Math.max(0.1, Math.min(9, (90 / (10 + 0.137 * Math.pow(d, 1.6))) + (Math.random()-0.5)*0.1)); }
+        // Instrumentación visual: no interviene en los algoritmos numéricos.
+        function writeTelemetry(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
+        function fillTelemetry(id, percent) {
+            const element = document.getElementById(id);
+            if (element) element.style.width = Math.max(0, Math.min(100, percent)) + '%';
+        }
+        function updateLab() {
+            const d = parseFloat(document.getElementById('distSlider').value);
+            const voltage = calculateVirtualVoltage(d);
+            const relative = Math.max(0, Math.min(1, voltage / 9));
+            document.getElementById('liveReadings').innerText = `Distancia: ${d.toFixed(1)} cm | Voltaje: ${voltage.toFixed(2)} V`;
+
+            // Separación gráfica y brillo ligados a las variables del modelo.
+            const stageWidth = document.querySelector('.simulation-area').getBoundingClientRect().width;
+            const minGap = Math.min(34, Math.max(17, stageWidth * 0.08));
+            const maxGap = Math.max(minGap + 8, stageWidth - 100);
+            const px = minGap + ((d - 5) / 115) * (maxGap - minGap);
+            document.getElementById('flashlightContainer').style.left = Math.max(5, stageWidth - 85 - px) + 'px';
+            const beam = document.getElementById('lightBeam');
+            beam.style.width = `${px}px`;
+            beam.style.opacity = Math.max(0.12, relative);
+            document.querySelector('.ldr-sensor').style.filter = `brightness(${0.55 + 1.45 * relative})`;
+
+            writeTelemetry('ldrDistanceMetric', d.toFixed(1) + ' cm');
+            writeTelemetry('ldrVoltageMetric', voltage.toFixed(2) + ' V');
+            writeTelemetry('ldrScaleMetric', (relative * 100).toFixed(1) + ' %');
+            fillTelemetry('ldrVoltageBar', relative * 100);
+            updateLiveCursor('ldr',d);
+        }
+        function startRecordingLab() {
+            clearExperimentSummary('ldr');
+            const durationSec = parseInt(document.getElementById('recordTimeLab').value), btn = document.getElementById('btnRecordLab');
+            let elapsed = 0; btn.disabled = true; document.getElementById('dataInput').value = ""; 
+            recordingTimerLab = setInterval(() => {
+                const d = parseFloat(document.getElementById('distSlider').value), txt = document.getElementById('dataInput');
+                txt.value += (txt.value ? "\n" : "") + `${d.toFixed(1)}, ${calculateVirtualVoltage(d).toFixed(2)}`;
+                txt.scrollTop = txt.scrollHeight; runSimulationLab(); 
+                elapsed += 500; btn.innerText = `Grabando... ${((durationSec*1000 - elapsed)/1000).toFixed(1)}s`;
+                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerLab); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
+            }, 500);
+        }
+        function clearDataLab() { stopAutomaticSweep('ldr', 'clear'); clearExperimentSummary('ldr'); stopManualRecorder('ldr'); document.getElementById('dataInput').value = ""; showSweepStatus('ldr', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runSimulationLab(); }
+        
+        function toggleInputsLab() {
+            const m = document.getElementById('methodSelect').value, c = document.getElementById('dynamicInputsLab');
+            let desc = "", inputs = "";
+            if (m === 'lagrange') { 
+                desc = "Lagrange Local (4 nodos) asegura una interpolación impecable eludiendo el Fenómeno de Runge."; 
+                inputs = `<label style="display:flex; align-items:center;">Evaluar d (cm) <div class="info-tooltip"><span class="icon">i</span><div class="text">Inserta una distancia hipotética donde no hayas grabado datos físicos. El algoritmo calculará su voltaje exacto.</div></div></label><input type="number" id="evalPoint" value="26">`; 
+            } else if (m === 'rk4') { 
+                desc = "Traza la envolvente teórica solucionando la EDO logística del decaimiento óptico."; 
+                inputs = `<label style="display:flex; align-items:center;">γ (Sensibilidad) <div class="info-tooltip"><span class="icon">i</span><div class="text">Característica empírica del sensor. Un número mayor hará que la curva teórica caiga en picada rápidamente.</div></div></label><input type="number" id="gammaVal" value="1.6" step="0.1" style="margin-bottom:8px;">
+                          <label style="display:flex; align-items:center;">Paso h (cm) <div class="info-tooltip"><span class="icon">i</span><div class="text">Resolución del cálculo. Si es muy grande (ej. 20), la línea teórica será facetada y perderá exactitud por truncamiento.</div></div></label><input type="number" id="hVal" value="5">`; 
+            } else if (m === 'simpson') { desc = "Integra el área bajo la curva para cuantificar matemáticamente la densidad de energía a lo largo del trayecto."; }
+            c.innerHTML = `<div class="help-desc">${desc}</div><div style="margin-top:10px;">${inputs}</div>`;
+        }
+        function runSimulationLab() {
+            const data = parseData('dataInput'), m = document.getElementById('methodSelect').value;
+            let datasets = [];
+            if(data.length > 0) datasets.push({ label: 'Señal Capturada', data: data, backgroundColor: '#00d2ff', borderColor: '#00d2ff', showLine: true, fill: false });
+            
+            if (m === 'lagrange') {
+                if (data.length >= 2) {
+                    let x = parseFloat(document.getElementById('evalPoint')?.value || 26), y = lagrangeLocal(data, x);
+                    datasets.push({ label: `Pred. Local`, data: [{x, y}], backgroundColor: '#ff4757', pointRadius: 8, pointStyle: 'rectRot' });
+                    document.getElementById('resultsLab').innerHTML = `✅ Lagrange: V(${x}) = <b>${y.toFixed(4)} V</b>`;
+                } else document.getElementById('resultsLab').innerHTML = `⚠️ Graba datos primero.`;
+            } else if (m === 'rk4') {
+                let d = data.length>0 ? data[0].x : 5, V = data.length>0 ? data[0].y : 7.62, rk = [{x:d, y:V}];
+                let g = parseFloat(document.getElementById('gammaVal')?.value||1.6);
+                let h = Math.max(0.1, Math.abs(parseFloat(document.getElementById('hVal')?.value||5))); // Blindaje contra h=0 o negativos
+                let f = (d, V) => -(g/Math.max(0.1, d))*V*(1-(V/9)); // Blindaje contra d=0
+                while(d <= 120) { let k1=f(d,V), k2=f(d+h/2,V+h/2*k1), k3=f(d+h/2,V+h/2*k2), k4=f(d+h,V+h*k3); V+=(h/6)*(k1+2*k2+2*k3+k4); V=Math.max(0.001,V); d+=h; rk.push({x:d, y:V}); }
+                datasets.push({ label: 'Perfil Ideal (RK4)', data: rk, borderColor: '#2ecc71', borderDash: [5,5], pointRadius: 0, showLine: true });
+                document.getElementById('resultsLab').innerHTML = `✅ EDO RK4 (Teórica) Resuelta. Graba para comparar.`;
+            } else if (m === 'simpson') {
+                if(data.length >= 3) {
+                    let st = data[0].x, end = data[data.length-1].x, h = (end-st)/20, sO=0, sE=0;
+                    for(let i=1; i<20; i++) { let v = lagrangeLocal(data, st+i*h); i%2!==0 ? sO+=v : sE+=v; }
+                    let area = (h/3)*(data[0].y + 4*sO + 2*sE + data[data.length-1].y);
+                    if(datasets.length>0){ datasets[0].fill = 'origin'; datasets[0].backgroundColor = 'rgba(0, 210, 255, 0.15)'; }
+                    document.getElementById('resultsLab').innerHTML = `✅ Energía Acumulada = <b>${area.toFixed(4)} V·cm</b>`;
+                } else document.getElementById('resultsLab').innerHTML = `⚠️ Graba múltiples puntos para integrar el área.`;
+            }
+            if (myChart) myChart.destroy();
+            let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Distancia (cm)'; opt.scales.y.title.text = 'Voltaje (V)'; opt.scales.y.min = 0;
+            myChart = new Chart(document.getElementById('mainChart').getContext('2d'), { type: 'scatter', data: { datasets }, options: opt});
+            syncLiveChart('ldr');
+            updateMethodDescription('ldr');
+        }
+
+        // --- 2. RF (DRIVE TEST) ---
+        function getRFPower(d, u, ptx, g, f) {
+            let ideal = ptx + g - 20*Math.log10(d) - 20*Math.log10(f) - 92.45 - ((u/100) * 0.4 * d);
+            return ideal + (Math.random()-0.5)*1.5; 
+        }
+        function updateRF() {
+            const d = parseFloat(document.getElementById('distRF').value), u = parseFloat(document.getElementById('urbanSlider').value);
+            const ptx = parseFloat(document.getElementById('txPower').value), g = parseFloat(document.getElementById('txGain').value), f = parseFloat(document.getElementById('freqVal').value);
+            const power = getRFPower(d, u, ptx, g, f);
+            document.getElementById('rfReadings').innerText = `Distancia: ${d.toFixed(1)} km | Densidad: ${u}% | Señal: ${power.toFixed(1)} dBm`;
+
+            // Representación cualitativa: edificios y ondas cambian con el modelo.
+            document.getElementById('cityscape').style.height = `${(u / 100) * 80}px`;
+            const wave = document.getElementById('rfWave');
+            if (u > 50) wave.style.backgroundImage = `repeating-radial-gradient(circle at 0 50%, rgba(255, 154, 103, 0.5) 0, transparent 25px)`;
+            else wave.style.backgroundImage = `repeating-radial-gradient(circle at 0 50%, rgba(57, 224, 241, 0.5) 0, transparent 25px)`;
+            const relativePower = Math.max(0, Math.min(1, (power + 120) / 60));
+            wave.style.opacity = (0.25 + 0.75 * relativePower) * (1 - 0.58 * u / 100);
+
+            writeTelemetry('rfDistanceMetric', d.toFixed(1) + ' km');
+            writeTelemetry('rfPowerMetric', power.toFixed(1) + ' dBm');
+            writeTelemetry('rfUrbanMetric', ((u / 100) * 0.4 * d).toFixed(1) + ' dB');
+            fillTelemetry('rfPowerBar', relativePower * 100);
+            const stage = document.querySelector('.telecom-visual');
+            const receiver = document.getElementById('rfReceiver');
+            if (receiver && stage) receiver.style.left = (63 + ((d - 1) / 49) * Math.max(10, stage.getBoundingClientRect().width - 145)) + 'px';
+            updateLiveCursor('rf',d);
+        }
+        function startRecordingRF() {
+            clearExperimentSummary('rf');
+            const durationSec = parseInt(document.getElementById('timeRF').value), btn = document.getElementById('btnRecordRF');
+            const ptx = parseFloat(document.getElementById('txPower').value), g = parseFloat(document.getElementById('txGain').value), f = parseFloat(document.getElementById('freqVal').value);
+            let elapsed = 0; btn.disabled = true; document.getElementById('dataRF').value = ""; 
+            
+            recordingTimerRF = setInterval(() => {
+                const d = parseFloat(document.getElementById('distRF').value), u = parseFloat(document.getElementById('urbanSlider').value), txt = document.getElementById('dataRF');
+                txt.value += (txt.value ? "\n" : "") + `${d.toFixed(1)}, ${getRFPower(d, u, ptx, g, f).toFixed(2)}`;
+                txt.scrollTop = txt.scrollHeight; runTelecomSimulation(); 
+                elapsed += 500; btn.innerText = `Grabando... ${((durationSec*1000 - elapsed)/1000).toFixed(1)}s`;
+                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerRF); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
+            }, 500);
+        }
+        function clearRF() { stopAutomaticSweep('rf', 'clear'); clearExperimentSummary('rf'); stopManualRecorder('rf'); document.getElementById('dataRF').value = ""; showSweepStatus('rf', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTelecomSimulation(); }
+
+        function toggleInputsTelecom() {
+            const m = document.getElementById('telecomMethod').value, c = document.getElementById('dynamicInputsTelecom');
+            let desc = "", inputs = "";
+            if (m === 'nr') { 
+                desc = "Calcula iterativamente el kilómetro exacto donde la curva intercepta el piso de ruido (Límite máximo)."; 
+                inputs = `<label style="display:flex; align-items:center;">Sensibilidad (RX) <div class="info-tooltip"><span class="icon">i</span><div class="text">El piso térmico del hardware (ej. -80 dBm). Si la señal cae por debajo, el usuario pierde cobertura o internet.</div></div></label><input type="number" id="rxObj" value="-80">`; 
+            } else if (m === 'lagrange') { 
+                desc = "Interpola puntos ciegos sin necesidad de enviar cuadrillas de medición a ese kilómetro."; 
+                inputs = `<label style="display:flex; align-items:center;">Km a estimar <div class="info-tooltip"><span class="icon">i</span><div class="text">Punto en el mapa (ej. 15.5) donde no se tienen datos reales grabados para predecir si habrá señal celular.</div></div></label><input type="number" id="telEval" value="15" step="0.5">`; 
+            } else if (m === 'rk4') { 
+                desc = "Resuelve la EDO de pérdida de radiofrecuencia (Paso h) considerando también la atenuación del concreto si se grabaron datos urbanos."; 
+                inputs = `<label style="display:flex; align-items:center;">Paso h (Km) <div class="info-tooltip"><span class="icon">i</span><div class="text">Saltos de resolución geométrica para el método iterativo RK4. Valores pequeños dan más precisión.</div></div></label><input type="number" id="telStep" value="1">`; 
+            } else if (m === 'simpson') { desc = "Integra la señal a lo largo de la ruta grabada para analizar la densidad de espectro o fuerza total de cobertura en el valle."; }
+            c.innerHTML = `<div class="help-desc">${desc}</div><div style="margin-top:10px;">${inputs}</div>`;
+        }
+
+        function runTelecomSimulation() {
+            const data = parseData('dataRF'), m = document.getElementById('telecomMethod').value;
+            const Ptx = parseFloat(document.getElementById('txPower').value), G = parseFloat(document.getElementById('txGain').value), F = parseFloat(document.getElementById('freqVal').value);
+            
+            let idealData = []; for(let d=0.5; d<=50; d+=0.5) idealData.push({x:d, y:Ptx+G-20*Math.log10(d)-20*Math.log10(F)-92.45});
+            let ds = [{label: 'FSPL (Vacío)', data: idealData, borderColor: 'rgba(58, 123, 213, 0.3)', showLine: true, pointRadius:0, fill: false}];
+            if (data.length > 0) ds.push({label: 'Datos Drive-Test', data: data, backgroundColor: '#f1c40f', borderColor: '#f1c40f', showLine: true, fill: false});
+            let resHtml = "Selecciona un método. Si no hay datos, operará en modo Teórico.";
+
+            if (m === 'lagrange') {
+                if(data.length>=2){
+                    let x = parseFloat(document.getElementById('telEval')?.value || 15), y = lagrangeLocal(data, x);
+                    ds.push({ label: `Estimado (d=${x})`, data: [{x, y}], backgroundColor: '#00d2ff', pointRadius: 8, pointStyle: 'rectRot' });
+                    resHtml = `✅ Lagrange: Señal interpolada de <b>${y.toFixed(2)} dBm</b>.`;
+                } else resHtml = `⚠️ Graba un Drive-Test primero para interpolar.`;
+            } else if (m === 'nr') {
+                let rxObj = parseFloat(document.getElementById('rxObj')?.value || -80), d_it;
+                if(data.length>=2) {
+                    d_it = data[Math.floor(data.length/2)].x;
+                    for(let i=0; i<15; i++) { 
+                        let f_val = lagrangeLocal(data, d_it)-rxObj;
+                        let d_val = (lagrangeLocal(data, d_it+0.1)-lagrangeLocal(data, d_it-0.1))/0.2; 
+                        if(Math.abs(d_val)<0.001) break; 
+                        d_it -= (f_val/d_val); 
+                        if (d_it <= 0) d_it = 0.001; // Blindaje NR Numérico
+                    }
+                    resHtml = `🚨 N-R (Drive-Test Real): La red se cae en el km <b>${d_it.toFixed(2)}</b>.`;
+                } else {
+                    let cte = Ptx+G-20*Math.log10(F)-92.45-rxObj; d_it=1;
+                    for(let i=0; i<30; i++) {
+                        let f_val = cte-20*Math.log10(d_it);
+                        let d_val = -20/(d_it*Math.log(10));
+                        d_it = d_it - (f_val/d_val);
+                        if (d_it <= 0) d_it = 0.001; // Blindaje logaritmo negativo
+                    }
+                    resHtml = `🚨 N-R (Teórico Ideal): La red se cae en el km <b>${d_it.toFixed(2)}</b>.`;
+                }
+                ds.push({label:'Límite Crítico', data:[{x:d_it, y:rxObj}], backgroundColor: '#ff4757', pointRadius: 8});
+                ds.push({label:'Sensibilidad', data:[{x:0, y:rxObj},{x:50,y:rxObj}], borderColor:'#ff4757', borderDash:[5,5], pointRadius:0, showLine:true});
+            } else if (m === 'rk4') {
+                let h = Math.max(0.1, Math.abs(parseFloat(document.getElementById('telStep')?.value || 1))); // Blindaje RK4 h
+                let d0 = data.length>0 ? data[0].x : 1, p0 = data.length>0 ? data[0].y : (Ptx+G-20*Math.log10(1)-20*Math.log10(F)-92.45);
+                let alpha = 0; if(data.length>0) { let pIdeal0 = Ptx+G-20*Math.log10(d0)-20*Math.log10(F)-92.45; alpha = (pIdeal0-p0)/d0; if(alpha<0)alpha=0; }
+                let d = d0, P = p0, rkData = [{x:d, y:P}], func = (dist) => -(8.686 / dist) - alpha;
+                while(d <= 50) { let k1=func(d), k2=func(d+h/2), k3=func(d+h/2), k4=func(d+h); P += (h/6)*(k1+2*k2+2*k3+k4); d += h; rkData.push({x:d, y:P}); }
+                ds.push({ label: 'RK4 (EDO Integrada)', data: rkData, borderColor: '#00ff88', borderDash: [3,3], pointRadius: 0, showLine: true, borderWidth:2 });
+                resHtml = `✅ RK4: Pérdida diferencial trazada exitosamente.`;
+            } else if (m === 'simpson') {
+                if(data.length>=3) {
+                    let st = data[0].x, end = data[data.length-1].x, n=20, h = (end-st)/n, sO=0, sE=0;
+                    for(let i=1; i<n; i++) { let v = lagrangeLocal(data, st+i*h); i%2!==0 ? sO+=v : sE+=v; }
+                    let area = (h/3)*(data[0].y + 4*sO + 2*sE + data[data.length-1].y);
+                    ds[1].fill = 'origin'; ds[1].backgroundColor = 'rgba(241, 196, 15, 0.2)';
+                    resHtml = `✅ Simpson: Espectro acumulado grabado = <b>${area.toFixed(2)} dBm·km</b>.`;
+                } else resHtml = `⚠️ Graba puntos suficientes para poder integrar.`;
+            }
+
+            if (telecomChartObj) telecomChartObj.destroy();
+            let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Distancia (Km)'; opt.scales.y.title.text = 'Potencia Rx (dBm)';
+            telecomChartObj = new Chart(document.getElementById('telecomChart').getContext('2d'), { type: 'scatter', data: { datasets: ds }, options: opt});
+            document.getElementById('telecomResults').innerHTML = resHtml;
+            syncLiveChart('rf');
+            updateMethodDescription('rf');
+        }
+
+        // --- 3. TURBIDÍMETRO ---
+        function getTurbiVolt(ntu) { return Math.max(0.1, 9.0 * Math.exp(-0.03 * ntu) + (Math.random()-0.5)*0.15); }
+        function updateTurbi() {
+            const ntu = parseFloat(document.getElementById('turbiSlider').value);
+            const voltage = getTurbiVolt(ntu);
+            const relative = Math.max(0, Math.min(1, voltage / 9));
+            document.getElementById('turbiReadings').innerText = `Turbidez: ${ntu.toFixed(1)} NTU | Sensor: ${voltage.toFixed(2)} V`;
+            document.getElementById('waterMurkiness').style.opacity = ntu / 100;
+            document.getElementById('turbiBeam').style.opacity = Math.max(0.08, relative);
+            document.getElementById('waterParticles').style.opacity = Math.pow(ntu / 100, 0.75) * 0.9;
+            document.getElementById('turbiSensor').style.filter = `brightness(${0.55 + 1.45 * relative})`;
+
+            writeTelemetry('turbiNtuMetric', ntu.toFixed(0) + ' NTU');
+            writeTelemetry('turbiVoltageMetric', voltage.toFixed(2) + ' V');
+            writeTelemetry('turbiRelativeMetric', (relative * 100).toFixed(1) + ' %');
+            fillTelemetry('turbiVoltageBar', relative * 100);
+            updateLiveCursor('turbi',ntu);
+        }
+        function startRecordingTurbi() {
+            clearExperimentSummary('turbi');
+            const durationSec = parseInt(document.getElementById('turbiRecordTime').value), btn = document.getElementById('btnRecordTurbi');
+            let elapsed = 0; btn.disabled = true; document.getElementById('turbiData').value = ""; 
+            recordingTimerTurbi = setInterval(() => {
+                const ntu = parseFloat(document.getElementById('turbiSlider').value), txt = document.getElementById('turbiData');
+                txt.value += (txt.value ? "\n" : "") + `${ntu}, ${getTurbiVolt(ntu).toFixed(2)}`;
+                txt.scrollTop = txt.scrollHeight; runTurbiSimulation(); 
+                elapsed += 500; btn.innerText = `Grabando... ${((durationSec*1000 - elapsed)/1000).toFixed(1)}s`;
+                if (elapsed >= durationSec * 1000) { clearInterval(recordingTimerTurbi); btn.disabled = false; btn.innerText = "🔴 Grabar moviendo deslizador"; }
+            }, 500);
+        }
+        function takeTurbiSample() { clearExperimentSummary('turbi'); const ntu = document.getElementById('turbiSlider').value, txt = document.getElementById('turbiData'); txt.value += (txt.value ? "\n" : "") + `${ntu}, ${getTurbiVolt(ntu).toFixed(2)}`; runTurbiSimulation(); }
+        function clearTurbi() { stopAutomaticSweep('turbi', 'clear'); clearExperimentSummary('turbi'); stopManualRecorder('turbi'); document.getElementById('turbiData').value = ""; showSweepStatus('turbi', 'Datos eliminados. Puedes iniciar otro recorrido.', 0); runTurbiSimulation(); }
+        
+        function toggleInputsTurbi() {
+            const m = document.getElementById('turbiMethod').value, c = document.getElementById('turbiDynamic');
+            let desc = "", inputs = "";
+            if (m === 'lagrange') { desc = "Interpolación suave anti-Runge para calibrar el sensor óptico."; } 
+            else if (m === 'nr') { 
+                desc = "Lógica industrial: localiza matemáticamente dónde ejecutar la parada de seguridad."; 
+                inputs = `<label style="display:flex; align-items:center;">Alarma (Voltaje de corte) <div class="info-tooltip"><span class="icon">i</span><div class="text">Umbral seguro configurado en el sistema SCADA (ej. 3.5V). El método calculará la concentración tóxica exacta a la que este voltaje se alcanzará, parando el flujo.</div></div></label><input type="number" id="turbiAlarm" value="3.5" step="0.1" onchange="runTurbiSimulation()">`; 
+            }
+            else if (m === 'rk4') {
+                desc = "Resuelve la Ecuación Diferencial Ordinaria de la Ley de Beer-Lambert para trazar la absorción perfecta.";
+                inputs = `<label style="display:flex; align-items:center;">Paso h (NTU) <div class="info-tooltip"><span class="icon">i</span><div class="text">Intervalo de integración numérica.</div></div></label><input type="number" id="turbiStep" value="2">`;
+            }
+            else if (m === 'simpson') { desc = "Calcula la Opacidad Total de la muestra fluida integrando el voltaje, útil para sistemas de filtrado por etapas."; }
+            c.innerHTML = `<div class="help-desc">${desc}</div><div style="margin-top:10px;">${inputs}</div>`;
+        }
+
+        function runTurbiSimulation() {
+            const data = parseData('turbiData'), method = document.getElementById('turbiMethod').value;
+            let datasets = [];
+            if(data.length>0) datasets.push({ label: 'Muestras Fluido', data: data, backgroundColor: '#00ff88', borderColor: '#00ff88', showLine: true, fill: false });
+            let htmlRes = "Analizando el perfil de absorción óptica...";
+
+            if (method === 'lagrange') {
+                if(data.length >= 2) {
+                    let curve = [], minNTU = data[0].x, maxNTU = data[data.length-1].x;
+                    if(maxNTU - minNTU > 0) {
+                        for(let i=minNTU; i<=maxNTU; i+= (maxNTU-minNTU)/20) curve.push({x: i, y: lagrangeLocal(data, i)});
+                        datasets.push({ label: 'Calibración Suave', data: curve, borderColor: '#f1c40f', borderDash:[3,3], pointRadius:0, showLine:true});
+                        htmlRes = `✅ Curva de calibración interpolada matemáticamente.`;
+                    }
+                } else htmlRes = `⚠️ Toma muestras de agua o graba la contaminación para trazar.`;
+            } else if (method === 'nr') {
+                let alarmV = parseFloat(document.getElementById('turbiAlarm')?.value || 3.5);
+                let k_aprox = 0.03, V0 = 9.0;
+                if(data.length >= 2) { k_aprox = -Math.log(data[data.length-1].y / data[0].y) / (data[data.length-1].x - data[0].x); if(!isFinite(k_aprox) || k_aprox<=0) k_aprox = 0.03; V0 = data[0].y; }
+                let func = (T) => V0 * Math.exp(-k_aprox * T) - alarmV, deriv = (T) => -k_aprox * V0 * Math.exp(-k_aprox * T), t_iter = 10;
+                for(let i=0; i<20; i++) { let d_val = deriv(t_iter); if(d_val === 0) break; let t_next = t_iter - (func(t_iter) / d_val); if(t_next < 0) t_next = 0; if(Math.abs(t_next - t_iter) < 0.01) { t_iter = t_next; break; } t_iter = t_next; }
+                datasets.push({ label: 'Límite de SCADA', data: [{x:0, y:alarmV}, {x:100, y:alarmV}], borderColor:'#ff4757', borderDash:[5,5], pointRadius:0, showLine:true});
+                datasets.push({ label: 'Disparo de Alarma', data: [{x:t_iter, y:alarmV}], backgroundColor:'#ff4757', pointRadius:8, pointStyle:'triangle'});
+                htmlRes = `🚨 Bloqueo del sistema predicho exactamente a los <b>${t_iter.toFixed(1)} NTU</b> de turbidez.`;
+            } else if (method === 'rk4') {
+                let h = Math.max(0.1, parseFloat(document.getElementById('turbiStep')?.value || 2));
+                let k_aprox = 0.03, V0 = 9.0;
+                if(data.length >= 2) { k_aprox = -Math.log(data[data.length-1].y / data[0].y) / (data[data.length-1].x - data[0].x); if(!isFinite(k_aprox) || k_aprox<=0) k_aprox = 0.03; V0 = data[0].y; }
+                let ntu = data.length>0 ? data[0].x : 0, V = V0, rkData = [{x:ntu, y:V}];
+                let func = (C, Vol) => -k_aprox * Vol; 
+                while(ntu <= 100) { let k1 = func(ntu, V); let k2 = func(ntu+h/2, V+h/2*k1); let k3 = func(ntu+h/2, V+h/2*k2); let k4 = func(ntu+h, V+h*k3); V += (h/6)*(k1 + 2*k2 + 2*k3 + k4); V = Math.max(0.001, V); ntu += h; rkData.push({x:ntu, y:V}); }
+                datasets.push({ label: 'RK4 (Beer-Lambert)', data: rkData, borderColor: '#00d2ff', borderDash:[3,3], pointRadius:0, showLine:true});
+                htmlRes = `✅ RK4: Dinámica de oscurecimiento trazada teóricamente.`;
+            } else if (method === 'simpson') {
+                if(data.length >= 3) {
+                    let st = data[0].x, end = data[data.length-1].x, n=20, h = (end-st)/n, sO=0, sE=0;
+                    for(let i=1; i<n; i++) { let v = lagrangeLocal(data, st+i*h); i%2!==0 ? sO+=v : sE+=v; }
+                    let area = (h/3)*(data[0].y + 4*sO + 2*sE + data[data.length-1].y);
+                    if(datasets.length>0){ datasets[0].fill = 'origin'; datasets[0].backgroundColor = 'rgba(241, 196, 15, 0.2)'; }
+                    htmlRes = `✅ Simpson: Absorción fotónica total = <b>${area.toFixed(2)} V·NTU</b>.`;
+                } else htmlRes = `⚠️ Toma muestras de agua suficientes para integrar.`;
+            }
+
+            if (turbiChartObj) turbiChartObj.destroy();
+            let opt = JSON.parse(JSON.stringify(chartOptionsBase)); opt.scales.x.title.text = 'Turbidez (NTU)'; opt.scales.y.title.text = 'Voltaje Sensor (V)';
+            turbiChartObj = new Chart(document.getElementById('turbiChart').getContext('2d'), { type: 'scatter', data: { datasets }, options: opt });
+            document.getElementById('turbiResults').innerHTML = htmlRes;
+            syncLiveChart('turbi');
+            updateMethodDescription('turbi');
+        }
+
+
+        // Escenarios visuales: solo ajustan los mismos deslizadores del simulador original.
+        const scenarioSliders = { ldr: 'distSlider', rf: 'urbanSlider', turbi: 'turbiSlider' };
+        function syncScenarioButtons(type) {
+            const slider = document.getElementById(scenarioSliders[type]);
+            if (!slider) return;
+            document.querySelectorAll('[data-scenario="' + type + '"]').forEach(btn => {
+                const selected = Number(btn.dataset.value) === Number(slider.value);
+                btn.classList.toggle('selected', selected);
+                btn.setAttribute('aria-pressed', String(selected));
+            });
+        }
+        function applyScenario(type, value) {
+            const slider = document.getElementById(scenarioSliders[type]);
+            if (!slider) return;
+            slider.value = value;
+            slider.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        function setupInteractiveControls() {
+            document.querySelectorAll('input[type="range"]').forEach(slider => {
+                const paint = () => {
+                    const min = Number(slider.min) || 0, max = Number(slider.max) || 100;
+                    const fill = max === min ? 0 : 100 * (Number(slider.value) - min) / (max - min);
+                    slider.style.setProperty('--range-fill', Math.max(0, Math.min(100, fill)) + '%');
+                };
+                slider.addEventListener('input', paint);
+                paint();
+            });
+            Object.keys(scenarioSliders).forEach(type => {
+                document.getElementById(scenarioSliders[type]).addEventListener('input', () => syncScenarioButtons(type));
+                syncScenarioButtons(type);
+            });
+        }
+
+
+        // --- COMPARADOR A/B (lecturas teóricas, sin ruido aleatorio) ---
+        const comparisonState = {
+            ldr: { A: null, B: null, chart: null },
+            rf: { A: null, B: null, chart: null },
+            turbi: { A: null, B: null, chart: null }
+        };
+        // Usan las mismas expresiones ideales de las funciones originales.
+        function theoreticalLdr(d) {
+            return Math.max(0.1, Math.min(9, 90 / (10 + 0.137 * Math.pow(d, 1.6))));
+        }
+        function theoreticalRf(d, p) {
+            return p.ptx + p.g - 20 * Math.log10(d) - 20 * Math.log10(p.f)
+                - 92.45 - ((p.u / 100) * 0.4 * d);
+        }
+        function theoreticalTurbi(ntu) { return 9 * Math.exp(-0.03 * ntu); }
+        function readComparisonScenario(type) {
+            const val = id => Number(document.getElementById(id).value);
+            if (type === 'ldr') {
+                const d = val('distSlider');
+                return { d, value: theoreticalLdr(d), caption: d.toFixed(0) + ' cm de distancia' };
+            }
+            if (type === 'rf') {
+                const p = { d: val('distRF'), u: val('urbanSlider'), ptx: val('txPower'),
+                    g: val('txGain'), f: val('freqVal') };
+                if (![p.d,p.u,p.ptx,p.g,p.f].every(Number.isFinite) || p.d <= 0 || p.f <= 0) return null;
+                p.value = theoreticalRf(p.d, p);
+                p.caption = p.d.toFixed(1) + ' km · ' + p.u.toFixed(0) + '% urbano · ' + p.f.toFixed(1) + ' GHz';
+                return p;
+            }
+            if (type === 'turbi') {
+                const ntu = val('turbiSlider');
+                return { ntu, value: theoreticalTurbi(ntu), caption: ntu.toFixed(0) + ' NTU de turbidez' };
+            }
+            return null;
+        }
+        function captureComparison(type, slot) {
+            if (!comparisonState[type] || !['A', 'B'].includes(slot)) return;
+            const snapshot = readComparisonScenario(type);
+            const hint = document.getElementById('compareHint-' + type);
+            if (!snapshot || !Number.isFinite(snapshot.value)) {
+                hint.textContent = 'Revisa los parámetros: la distancia y la frecuencia deben ser positivas y los valores numéricos válidos.';
+                return;
+            }
+            comparisonState[type][slot] = snapshot;
+            const slotElement = document.getElementById('compareSlot-' + type + '-' + slot);
+            slotElement.dataset.filled = 'true';
+            document.getElementById('compareCaption-' + type + '-' + slot).textContent = snapshot.caption;
+            renderComparison(type);
+        }
+        function resetComparison(type) {
+            const state = comparisonState[type];
+            if (!state) return;
+            if (state.chart) { state.chart.destroy(); state.chart = null; }
+            state.A = null; state.B = null;
+            for (const slot of ['A', 'B']) {
+                document.getElementById('compareSlot-' + type + '-' + slot).dataset.filled = 'false';
+                document.getElementById('compareCaption-' + type + '-' + slot).textContent = 'Sin guardar';
+            }
+            document.getElementById('compareOutput-' + type).hidden = true;
+            document.getElementById('compareHint-' + type).textContent = 'Comparación reiniciada. Guarda dos configuraciones para volver a contrastarlas.';
+        }
+        function comparisonData(type, a, b) {
+            const teal = '#57e8d5', orange = '#f5b36c', blue = '#8397ff';
+            const point = (label, sample, x) => ({
+                label, data: [{ x, y: sample.value }], pointRadius: 9, pointHoverRadius: 12,
+                pointStyle: label.startsWith('B') ? 'rectRot' : 'circle',
+                backgroundColor: label.startsWith('B') ? orange : teal,
+                borderColor: '#e9feff', borderWidth: 1, showLine: false
+            });
+            if (type === 'ldr' || type === 'turbi') {
+                const ldr = type === 'ldr', start = ldr ? 5 : 0, end = ldr ? 120 : 100;
+                const curve = [];
+                for (let x = start; x <= end; x += ldr ? 1 : 1) {
+                    curve.push({ x, y: ldr ? theoreticalLdr(x) : theoreticalTurbi(x) });
+                }
+                return {
+                    xTitle: ldr ? 'Distancia (cm)' : 'Turbidez (NTU)',
+                    yTitle: 'Voltaje (V)', xUnit: ldr ? 'cm' : 'NTU', yUnit: 'V',
+                    datasets: [
+                        {label: 'Modelo teórico',data:curve,showLine:true,pointRadius:0,
+                            borderColor:blue,borderWidth:2.7,tension:0.12},
+                        point('A · Lectura teórica', a, ldr ? a.d : a.ntu),
+                        point('B · Lectura teórica', b, ldr ? b.d : b.ntu)
+                    ]
+                };
+            }
+            const dataFor = sample => {
+                const curve = [];
+                for (let d = 1; d <= 50; d += 1) curve.push({x:d,y:theoreticalRf(d,sample)});
+                return curve;
+            };
+            return {
+                xTitle:'Distancia (km)', yTitle:'Potencia recibida (dBm)',
+                xUnit:'km', yUnit:'dBm',
+                datasets:[
+                    {label:'Cobertura A · '+a.u.toFixed(0)+'% urbano',data:dataFor(a),
+                        showLine:true,pointRadius:0,borderColor:teal,borderWidth:2.5,tension:0.1},
+                    {label:'Cobertura B · '+b.u.toFixed(0)+'% urbano',data:dataFor(b),
+                        showLine:true,pointRadius:0,borderColor:orange,borderWidth:2.5,borderDash:[7,4],tension:0.1},
+                    point('A · Punto de operación',a,a.d),
+                    point('B · Punto de operación',b,b.d)
+                ]
+            };
+        }
+        const comparisonGuide = {
+            id:'comparisonGuide',
+            afterDraw(chart) {
+                const elements = chart.getActiveElements();
+                if (!elements.length || !chart.chartArea) return;
+                const x = elements[0].element.x, area = chart.chartArea, ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();ctx.setLineDash([4,5]);ctx.strokeStyle = 'rgba(174,228,234,.36)';
+                ctx.moveTo(x,area.top);ctx.lineTo(x,area.bottom);ctx.stroke();ctx.restore();
+            }
+        };
+        function renderComparison(type) {
+            const state = comparisonState[type], a = state.A, b = state.B;
+            const output = document.getElementById('compareOutput-' + type);
+            const hint = document.getElementById('compareHint-' + type);
+            if (!a || !b) {
+                output.hidden = true;
+                hint.textContent = a ? 'A guardado. Ajusta los controles y guarda el escenario B.'
+                    : 'B guardado. Ajusta los controles y guarda el escenario A.';
+                return;
+            }
+            const delta = b.value - a.value;
+            const unit = type === 'rf' ? 'dBm' : 'V';
+            document.getElementById('compareValue-' + type + '-A').textContent = a.value.toFixed(2) + ' ' + unit;
+            document.getElementById('compareValue-' + type + '-B').textContent = b.value.toFixed(2) + ' ' + unit;
+            document.getElementById('compareValue-' + type + '-Delta').textContent = (delta >= 0 ? '+' : '−')
+                + Math.abs(delta).toFixed(2) + (type === 'rf' ? ' dB' : ' V');
+            hint.textContent = 'Comparación lista. Puedes guardar A o B otra vez para actualizarla con nuevos parámetros.';
+            output.hidden = false;
+            if (state.chart) { state.chart.destroy(); state.chart = null; }
+            const config = comparisonData(type, a, b);
+            state.chart = new Chart(document.getElementById('compareChart-' + type).getContext('2d'), {
+                type:'scatter', data:{datasets:config.datasets},
+                plugins:[comparisonGuide],
+                options:{
+                    responsive:true,maintainAspectRatio:false,animation:{duration:240},
+                    interaction:{mode:'nearest',intersect:false},
+                    scales:{
+                        x:{type:'linear',grid:{color:'rgba(160,199,227,.065)'},
+                            title:{display:true,text:config.xTitle,color:'#73e6db',font:{weight:'bold'}},
+                            ticks:{color:'#a9c2d1'}},
+                        y:{type:'linear',grid:{color:'rgba(160,199,227,.065)'},
+                            title:{display:true,text:config.yTitle,color:'#73e6db',font:{weight:'bold'}},
+                            ticks:{color:'#a9c2d1'}}
+                    },
+                    plugins:{
+                        legend:{position:'top',labels:{color:'#d8e9f1',usePointStyle:true,boxWidth:9,padding:13,font:{size:11}}},
+                        tooltip:{
+                            enabled:true,backgroundColor:'rgba(6,22,41,.96)',borderColor:'rgba(103,222,208,.5)',
+                            borderWidth:1,padding:11,displayColors:true,
+                            callbacks:{label(ctx){
+                                return ctx.dataset.label + ': ' + ctx.parsed.x.toFixed(1) + ' ' + config.xUnit
+                                    + ' → ' + ctx.parsed.y.toFixed(2) + ' ' + config.yUnit;
+                            }}
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // Presentación guiada: cambia únicamente la interfaz y la navegación.
+        const presentationLabels = {
+            labTab:'Óptica LDR · Luz y voltaje',
+            fieldTab:'Radiofrecuencia · Cobertura',
+            turbiTab:'Turbidimetría · Calidad del agua',
+            compTab:'Fundamentos matemáticos'
+        };
+        const presentationTypes = {labTab:'ldr',fieldTab:'rf',turbiTab:'turbi'};
+        const presentationStages = ['experiment','summary','analysis'];
+        let presentationStage = 'experiment';
+        function currentPresentationTab() {
+            return document.querySelector('.tab-content.active')?.id || 'labTab';
+        }
+        function updatePresentationToolbar() {
+            const tab = currentPresentationTab();
+            document.getElementById('presentationLabSelect').value = tab;
+            document.getElementById('presentationTitle').textContent = presentationLabels[tab];
+            document.getElementById('presentationSteps').hidden = tab === 'compTab';
+            document.querySelectorAll('[data-presentation-step]').forEach(button => {
+                const selected = button.dataset.presentationStep === presentationStage;
+                button.classList.toggle('active',selected);
+                button.setAttribute('aria-pressed',String(selected));
+            });
+            const fullscreen = document.getElementById('presentationFullscreen');
+            fullscreen.textContent = document.fullscreenElement ? '⤢ Salir de pantalla completa' : '⛶ Pantalla completa';
+            const hint = document.getElementById('presentationHint');
+            hint.textContent = tab === 'compTab'
+                ? 'Repasa los modelos físicos y las ecuaciones que respaldan los experimentos. Esc para salir.'
+                : 'Sigue las etapas de izquierda a derecha · ← → cambia de etapa · Esc sale de este modo.';
+        }
+        function togglePresentationMode(force) {
+            const on = typeof force === 'boolean' ? force : !document.body.classList.contains('presentation-mode');
+            document.body.classList.toggle('presentation-mode',on);
+            const button = document.getElementById('presentationToggle');
+            button.setAttribute('aria-pressed',String(on));
+            button.textContent = on ? '✓ Presentando' : '▣ Modo presentación';
+            document.getElementById('presentationToolbar').hidden = !on;
+            if (!on && document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+            presentationStage = 'experiment';
+            updatePresentationToolbar();
+            if (on) navigatePresentation('experiment');
+            else window.scrollTo({top:0,behavior:'smooth'});
+        }
+        function setPresentationLab(tabName) {
+            const tabs = ['labTab','fieldTab','turbiTab','compTab'];
+            const index = tabs.indexOf(tabName);
+            if (index === -1) return;
+            document.querySelectorAll('.tab-container .tab-btn')[index].click();
+            presentationStage = 'experiment';
+            updatePresentationToolbar();
+            if (tabName === 'compTab') {
+                document.querySelector('#compTab .section-intro').scrollIntoView({behavior:'smooth',block:'start'});
+            } else navigatePresentation('experiment');
+        }
+        function navigatePresentation(stage) {
+            const tab = currentPresentationTab(), panel = document.getElementById(tab);
+            if (!panel || !presentationStages.includes(stage)) return;
+            if (tab === 'compTab') {
+                panel.querySelector('.section-intro')?.scrollIntoView({behavior:'smooth',block:'start'});
+                return;
+            }
+            const type = presentationTypes[tab];
+            let target = stage === 'experiment' ? panel.querySelector('.auto-run-panel')
+                : stage === 'summary' ? document.getElementById('experimentSummary-' + type)
+                : panel.querySelector('.container');
+            if (stage === 'summary' && target.hidden) {
+                target = panel.querySelector('.auto-run-panel');
+                document.getElementById('presentationHint').textContent =
+                    'Primero inicia y completa un recorrido para generar la conclusión de este experimento.';
+            }
+            presentationStage = stage;
+            updatePresentationToolbar();
+            if (stage === 'summary' && document.getElementById('experimentSummary-' + type).hidden) {
+                document.getElementById('presentationHint').textContent =
+                    'Primero inicia y completa un recorrido para generar la conclusión de este experimento.';
+            }
+            target?.scrollIntoView({behavior:'smooth',block:'start'});
+        }
+        async function togglePresentationFullscreen() {
+            try {
+                if (document.fullscreenElement) await document.exitFullscreen();
+                else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+                else document.getElementById('presentationHint').textContent =
+                    'La pantalla completa no está disponible en este navegador.';
+            } catch (error) {
+                updatePresentationToolbar();
+                document.getElementById('presentationHint').textContent =
+                    'El navegador no permitió abrir la pantalla completa. El modo presentación sigue disponible.';
+                return;
+            }
+            updatePresentationToolbar();
+        }
+        document.addEventListener('fullscreenchange',updatePresentationToolbar);
+        document.addEventListener('keydown',event => {
+            if (event.key === 'Escape' && document.body.classList.contains('presentation-mode')) {
+                togglePresentationMode(false);
+                return;
+            }
+            if (!document.body.classList.contains('presentation-mode') ||
+                event.altKey || event.ctrlKey || event.metaKey ||
+                event.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName) ||
+                currentPresentationTab() === 'compTab') return;
+            if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+            const index = presentationStages.indexOf(presentationStage);
+            const next = Math.min(presentationStages.length - 1,
+                Math.max(0,index + (event.key === 'ArrowRight' ? 1 : -1)));
+            if (next !== index) { event.preventDefault(); navigatePresentation(presentationStages[next]); }
+        });
+
+        // Init
+        window.onload = () => { toggleInputsLab(); updateLab(); runSimulationLab(); toggleInputsTelecom(); updateRF(); runTelecomSimulation(); toggleInputsTurbi(); updateTurbi(); runTurbiSimulation(); setupInteractiveControls(); };
+    </script>
+</body>
+</html>
