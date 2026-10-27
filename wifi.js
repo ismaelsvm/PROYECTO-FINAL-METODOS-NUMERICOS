@@ -5,7 +5,7 @@
 (function () {
   const byId = (id) => document.getElementById(id);
   const state = { rows: [], groups: [], source: 'none', label: '', sweep: [], sweepTimer: null, sweepChart: null, analysisChart: null, fit: null };
-  const chartColors = { theory: '#62e3cc', observed: '#f0c976', fitted: '#988bfa', grid: 'rgba(151,188,192,.09)', text: '#9eb5c4' };
+  const chartColors = { theory: '#149a8a', observed: '#e39c48', fitted: '#7970cf', grid: 'rgba(49,85,108,.11)', text: '#687f91' };
   const fmt = (v, digits = 1) => Number.isFinite(v) ? Number(v).toFixed(digits) : '—';
   const finite = (v) => Number.isFinite(v);
   const rawNumber = (id) => Number(byId(id).value);
@@ -55,7 +55,8 @@
     badge.className = 'quality ' + klass;
     Array.from(byId('signalBars').children).forEach((bar, i) => bar.classList.toggle('on', i < bars));
     const maxDistance = Math.max(.1, Number(input.max) || 12);
-    const x = 12 + clamp(d / maxDistance, 0, 1) * 76;
+    const minDistance = Math.max(.1, Number(input.min) || 1);
+    const x = 26 + clamp((d - minDistance) / Math.max(.1, maxDistance - minDistance), 0, 1) * 63;
     byId('receiver').style.left = x + '%';
     const wallsNode = byId('sceneWalls');
     wallsNode.replaceChildren();
@@ -63,9 +64,35 @@
       const wall = document.createElement('span');
       wall.className = 'wall';
       wall.style.left = (12 + (x - 12) * (i + 1) / (p.walls + 1)) + '%';
+      const caption = document.createElement('span'); caption.className = 'wall-label'; caption.textContent = 'PARED'; wall.appendChild(caption);
       wallsNode.appendChild(wall);
     }
     byId('sceneEnd').textContent = fmt(maxDistance, 0) + ' m';
+    const feedback = p.walls > 0
+      ? 'Hay ' + p.walls + (p.walls === 1 ? ' pared' : ' paredes') + ' en el trayecto: añadimos ' + fmt(p.walls * p.wallLoss) + ' dB de pérdida estimada.'
+      : d < maxDistance * .4 ? '¡Bien! Al acercar el teléfono, el modelo predice una señal más intensa.' : 'El teléfono está más lejos. Observa cómo la señal disminuye mientras lo mueves.';
+    byId('sceneFeedback').textContent = feedback;
+    byId('phoneBubble').textContent = label;
+    const device = byId('receiver');
+    device.setAttribute('aria-valuemin', String(minDistance));
+    device.setAttribute('aria-valuemax', String(maxDistance));
+    device.setAttribute('aria-valuenow', String(d));
+    device.setAttribute('aria-valuetext', fmt(d, 1) + ' metros; ' + fmt(rssi, 1) + ' dBm; ' + label);
+    if (state.sweepChart) {
+      const signature = [p.d0, p.r0, p.n, p.walls, p.wallLoss, minDistance, maxDistance].join('|');
+      const chart = state.sweepChart;
+      if (state.plotSignature !== signature) {
+        state.plotSignature = signature;
+        const curve = [];
+        for (let i = 0; i <= 70; i++) {
+          const dx = minDistance + (maxDistance - minDistance) * i / 70;
+          curve.push({ x: dx, y: model(dx, p) });
+        }
+        chart.data.datasets[1].data = curve;
+      }
+      chart.data.datasets[2].data = [{ x: d, y: rssi }];
+      chart.update('none');
+    }
   }
   function chartOptions(xTitle, yTitle) {
     return {
@@ -84,7 +111,11 @@
     }
     state.sweepChart = new Chart(byId('sweepChart'), {
       type: 'scatter',
-      data: { datasets: [{ label: 'Recorrido simulado', data: [], showLine: true, borderColor: chartColors.theory, backgroundColor: chartColors.theory, pointRadius: 3, borderWidth: 2, tension: .15 }] },
+      data: { datasets: [
+        { label: 'Recorrido simulado', data: [], showLine: true, borderColor: chartColors.theory, backgroundColor: chartColors.theory, pointRadius: 3, borderWidth: 3, tension: .12 },
+        { label: 'Modelo teórico', data: [], showLine: true, borderColor: '#92cfc7', backgroundColor: '#92cfc7', pointRadius: 0, borderWidth: 1.5, borderDash: [5, 6] },
+        { label: 'Posición del celular', data: [], showLine: false, borderColor: '#e68e6f', backgroundColor: '#e68e6f', pointRadius: 7, pointHoverRadius: 9 }
+      ] },
       options: chartOptions('Distancia (m)', 'RSSI (dBm)')
     });
     state.analysisChart = new Chart(byId('analysisChart'), {
@@ -399,6 +430,17 @@
     const unusual = !!fit && fit.n <= 0;
     const sourceText = state.source === 'demo' ? ' Los puntos amarillos son un ejemplo sintético, no mediciones reales.' : '';
     const warnings = unusual ? ' Atención: el ajuste produce n ≤ 0; revisa el protocolo o las lecturas.' : '';
+    const insightTitle = byId('insightTitle'), insightText = byId('insightText');
+    if (!state.rows.length) {
+      insightTitle.textContent = '¡Primero juega con la simulación!';
+      insightText.textContent = 'La línea muestra lo que predice el modelo. Cuando cargues mediciones podrás comprobar qué tan cerca estuvo de la realidad.';
+    } else if (state.source === 'demo') {
+      insightTitle.textContent = '¡Así funciona el análisis!';
+      insightText.textContent = 'Estás usando datos inventados para practicar: ' + state.rows.length + ' lecturas en ' + state.groups.length + ' distancias. Cuando los sustituyas por tu Excel, verás el resultado de tu experimento.';
+    } else {
+      insightTitle.textContent = '¡Ya podemos comparar teoría y mediciones!';
+      insightText.textContent = 'Tu tabla contiene ' + state.rows.length + ' lecturas. El error RMSE del modelo inicial es ' + fmt(m.rmse, 2) + ' dB; cuanto menor sea, más cerca está el modelo de estos datos.';
+    }
     byId('analysisNote').textContent = state.rows.length
       ? 'Datos: ' + state.rows.length + ' lecturas, ' + state.groups.length + ' distancias. El ajuste usa todas las lecturas importadas. ' + (fit ? 'R² = ' + (fit.r2 === null ? 'no definido' : fmt(fit.r2, 3)) + '.' : 'Se requieren al menos dos distancias diferentes para la regresión.') + sourceText + warnings
       : 'La línea verde muestra el modelo teórico. Importa tu Excel para ver las mediciones (puntos amarillos) y el ajuste (línea violeta).';
@@ -452,6 +494,56 @@
     }
     download('SimuMath_Resultados_WiFi.csv', lines.map((row) => row.map(escapeCSV).join(';')).join('\r\n'));
   }
+  function setupPhoneDragging() {
+    const phone = byId('receiver');
+    const scene = byId('roomScene');
+    const distanceInput = byId('distance');
+    let activePointer = null;
+    const pointerToDistance = (clientX) => {
+      const rect = scene.getBoundingClientRect();
+      const part = clamp(((clientX - rect.left) / rect.width * 100 - 26) / 63, 0, 1);
+      const min = Number(distanceInput.min), max = Number(distanceInput.max);
+      return Math.round((min + (max - min) * part) * 10) / 10;
+    };
+    const updateFromPointer = (evt) => {
+      if (activePointer !== evt.pointerId) return;
+      distanceInput.value = String(pointerToDistance(evt.clientX));
+      readScene();
+    };
+    phone.addEventListener('pointerdown', (evt) => {
+      if (evt.button !== undefined && evt.button !== 0) return;
+      if (state.sweepTimer) stopSweep(false);
+      activePointer = evt.pointerId;
+      phone.classList.add('dragging');
+      phone.setPointerCapture(evt.pointerId);
+      evt.preventDefault();
+      updateFromPointer(evt);
+    });
+    phone.addEventListener('pointermove', updateFromPointer);
+    const endDrag = (evt) => {
+      if (activePointer !== evt.pointerId) return;
+      activePointer = null;
+      phone.classList.remove('dragging');
+      if (phone.hasPointerCapture(evt.pointerId)) phone.releasePointerCapture(evt.pointerId);
+    };
+    phone.addEventListener('pointerup', endDrag);
+    phone.addEventListener('pointercancel', endDrag);
+    phone.addEventListener('lostpointercapture', () => { activePointer = null; phone.classList.remove('dragging'); });
+    phone.addEventListener('keydown', (evt) => {
+      const step = evt.shiftKey ? 1 : .1;
+      let target = Number(distanceInput.value);
+      if (evt.key === 'ArrowLeft' || evt.key === 'ArrowDown') target -= step;
+      else if (evt.key === 'ArrowRight' || evt.key === 'ArrowUp') target += step;
+      else if (evt.key === 'Home') target = Number(distanceInput.min);
+      else if (evt.key === 'End') target = Number(distanceInput.max);
+      else return;
+      evt.preventDefault();
+      if (state.sweepTimer) stopSweep(false);
+      distanceInput.value = String(Math.round(clamp(target, Number(distanceInput.min), Number(distanceInput.max)) * 10) / 10);
+      readScene();
+    });
+  }
+
   function setupEvents() {
     for (const id of ['referenceDistance', 'referenceRSSI', 'exponent', 'wallCount', 'wallLoss', 'band']) {
       byId(id).addEventListener('input', () => { readScene(); updateAnalysis(); });
@@ -504,6 +596,7 @@
     if (!runSelfChecks()) console.error('SimuMath: fallo en pruebas internas de los métodos numéricos.');
     initCharts();
     setupEvents();
+    setupPhoneDragging();
     readScene();
     updateMeasurements();
     updateAnalysis();

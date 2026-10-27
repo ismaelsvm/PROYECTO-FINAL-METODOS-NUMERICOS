@@ -9,10 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="wifi.css?v=1">
+  <link rel="stylesheet" href="wifi.css?v=2">
+  <link rel="stylesheet" href="wifi-friendly.css?v=2">
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script defer src="wifi.js?v=1"></script>
+  <script defer src="wifi.js?v=2"></script>
 </head>
 <body>
  <div class="ambient" aria-hidden="true"></div>
@@ -30,9 +31,9 @@
    <section id="inicio" class="hero wrap">
      <div class="hero-copy">
        <div class="eyebrow"><span class="dot"></span> UNMSM · MÉTODOS NUMÉRICOS · TELECOMUNICACIONES</div>
-       <h1>Del router a los datos.<br><em>De los datos a las respuestas.</em></h1>
-       <p>Explora cómo cambia la señal Wi-Fi con la distancia, registra mediciones de un entorno real e interpreta los resultados con métodos numéricos. Todo en un solo laboratorio.</p>
-       <div class="hero-actions"><a href="#laboratorio" class="button primary">Comenzar experimento <span>↗</span></a><a href="#mediciones" class="button subtle">Ya tengo un Excel <span>↓</span></a></div>
+       <h1>Del router a los datos.<br><em>¡Descubre cómo viaja tu Wi-Fi!</em></h1>
+       <p>Mueve el celular, agrega paredes y observa la señal en acción. Después podrás comprobar tus predicciones con mediciones reales y descubrir qué nos dicen las matemáticas.</p>
+       <div class="hero-actions"><a href="#laboratorio" class="button primary">¡Vamos a experimentar! <span>↗</span></a><a href="#mediciones" class="button subtle">Ya tengo un Excel <span>↓</span></a></div>
        <div class="hero-footnote"><span class="status-point"></span> El navegador simula la señal. Las mediciones reales se obtienen con un teléfono y se importan después.</div>
      </div>
      <div class="hero-orbit" aria-label="Esquema de conectividad Wi-Fi"><div class="orbit ring-one"></div><div class="orbit ring-two"></div><div class="orbit ring-three"></div><div class="orbit-core">⌁</div><div class="orbit-device">▯</div><span class="orbit-label top">ROUTER</span><span class="orbit-label bottom">RECEPTOR</span><span class="orbit-connector"></span></div>
@@ -43,47 +44,67 @@
      <div class="section-head"><div><div class="kicker">01 / SIMULADOR INTERACTIVO</div><h2>Tu laboratorio de propagación</h2><p>Ajusta el ambiente y observa cómo se debilita la señal a medida que alejas el receptor.</p></div><span class="section-tag">MODELO LOG-DISTANCIA</span></div>
      <div class="experiment-layout">
        <aside class="panel controls-card">
-         <div class="card-title"><span class="small-icon">⚙</span><h3>Parámetros del entorno</h3><span class="help-chip">EDITABLE</span></div>
-         <label class="field-label" for="band">Banda del experimento <span>Dato descriptivo</span></label>
-         <select id="band"><option value="2.4 GHz">2.4 GHz</option><option value="5 GHz">5 GHz</option></select>
-         <div class="form-pair">
-           <div><label class="field-label" for="referenceDistance">Referencia d₀ <span>metros</span></label><input type="number" id="referenceDistance" value="1" min="0.1" max="100" step="0.1"></div>
-           <div><label class="field-label" for="referenceRSSI">RSSI en d₀ <span>dBm</span></label><input type="number" id="referenceRSSI" value="-40" min="-110" max="-10" step="1"></div>
-         </div>
-         <div class="field-header"><label for="exponent">Exponente de pérdida (n)</label><output id="exponentOut" for="exponent">2.2</output></div>
-         <input type="range" id="exponent" min="1" max="5" step="0.1" value="2.2">
-         <div class="range-label"><span>Menos atenuación</span><span>Más atenuación</span></div>
-         <div class="field-header space-top"><label for="wallCount">Obstáculos entre dispositivos</label><output id="wallCountOut" for="wallCount">0</output></div>
-         <input type="range" id="wallCount" min="0" max="3" step="1" value="0">
-         <label class="field-label space-top" for="wallLoss">Pérdida por obstáculo <span>dB (supuesto)</span></label>
-         <input type="number" id="wallLoss" min="0" max="30" step="0.5" value="5">
-         <div class="divider"></div>
-         <div class="field-header"><label for="distance">Distancia al router</label><output id="distanceOut" for="distance">4.0 m</output></div>
+         <div class="card-title"><span class="small-icon">✦</span><h3>Prepara tu habitación</h3><span class="help-chip">PASO 1</span></div>
+         <p class="control-welcome">¡Tú decides cómo será el experimento! Empieza con la distancia y los obstáculos; los ajustes matemáticos están más abajo.</p>
+         <div class="control-group-title"><span class="group-dot"></span> Controles básicos</div>
+         <label class="field-label" for="band">¿Qué Wi-Fi usarás? <span>Banda de tu red</span></label>
+         <select id="band"><option value="2.4 GHz">Wi-Fi 2.4 GHz</option><option value="5 GHz">Wi-Fi 5 GHz</option></select>
+         <div class="field-header space-top"><label for="distance">Distancia al router</label><output id="distanceOut" for="distance">4.0 m</output></div>
          <input type="range" id="distance" min="1" max="12" step="0.1" value="4">
-         <div class="formula-note"><span>MODELO MATEMÁTICO</span><strong>RSSI(d) = RSSI(d₀) − 10n · log₁₀(d/d₀) − L</strong><small>L = número de obstáculos × pérdida por obstáculo. Es un modelo educativo calibrable, no una lectura directa del router.</small></div>
+         <div class="range-label"><span>Más cerca</span><span>Más lejos</span></div>
+         <div class="field-header space-top"><label for="wallCount">¿Cuántas paredes hay entre ambos?</label><output id="wallCountOut" for="wallCount">0</output></div>
+         <input type="range" id="wallCount" min="0" max="3" step="1" value="0">
+         <div class="range-label"><span>Sin paredes</span><span>3 paredes</span></div>
+         <p class="drag-encouragement">☝ También puedes arrastrar el celular directamente en la habitación.</p>
+         <details class="advanced-controls" id="advancedControls">
+           <summary><span class="advanced-icon">⚙</span><span><strong>Ajustes avanzados</strong><small>Para calibrar el modelo matemático</small></span><span class="chevron">⌄</span></summary>
+           <div class="advanced-inner">
+             <div class="form-pair">
+               <div><label class="field-label" for="referenceDistance">Referencia d₀ <span>metros</span></label><input type="number" id="referenceDistance" value="1" min="0.1" max="100" step="0.1"></div>
+               <div><label class="field-label" for="referenceRSSI">RSSI en d₀ <span>dBm</span></label><input type="number" id="referenceRSSI" value="-40" min="-110" max="-10" step="1"></div>
+             </div>
+             <div class="field-header"><label for="exponent">Exponente de pérdida (n)</label><output id="exponentOut" for="exponent">2.2</output></div>
+             <input type="range" id="exponent" min="1" max="5" step="0.1" value="2.2">
+             <div class="range-label"><span>Menos pérdida</span><span>Más pérdida</span></div>
+             <label class="field-label space-top" for="wallLoss">Pérdida por pared <span>dB estimados</span></label>
+             <input type="number" id="wallLoss" min="0" max="30" step="0.5" value="5">
+             <div class="formula-note"><span>¿QUÉ CALCULAMOS?</span><strong>RSSI(d) = RSSI(d₀) − 10n · log₁₀(d/d₀) − L</strong><small>L representa la pérdida adicional por las paredes. Esta es una predicción ajustable, no una lectura directa del Wi-Fi.</small></div>
+           </div>
+         </details>
+         <div class="control-bottom-note"><span>✓</span> Los valores que ves aquí son simulados. Más adelante podrás contrastarlos con tu Excel.</div>
        </aside>
        <div class="lab-main">
          <div class="panel scene-card">
            <div class="scene-header"><div><div class="mini-kicker"><span class="pulse-dot"></span> ESCENARIO EN TIEMPO REAL</div><h3>El recorrido del receptor</h3></div><span id="scene-band" class="outlined-pill">2.4 GHz</span></div>
-           <div class="room-scene" id="roomScene" aria-label="Router fijo y receptor desplazándose horizontalmente">
+           <div class="room-scene" id="roomScene" aria-label="Habitación interactiva: arrastra el teléfono para cambiar la distancia al router">
              <div class="scene-grid" aria-hidden="true"></div>
+             <div class="room-window" aria-hidden="true"><span></span><span></span></div>
+             <div class="room-floor" aria-hidden="true"></div>
+             <div class="room-rug" aria-hidden="true"></div>
+             <div class="room-plant" aria-hidden="true">✿</div>
+             <div class="room-desk" aria-hidden="true"></div>
              <div class="scene-path" aria-hidden="true"></div>
              <div class="wifi-waves" aria-hidden="true"><i></i><i></i><i></i></div>
              <div class="router" id="router"><span class="antennas"></span><span class="router-body"><span class="router-led"></span>Wi-Fi</span><small>ROUTER</small></div>
              <div id="sceneWalls" class="scene-walls" aria-hidden="true"></div>
-             <div class="receiver" id="receiver"><span class="phone-outline"><span class="phone-screen">⌁</span></span><small>RECEPTOR</small></div>
-             <span class="scene-start">0 m</span><span class="scene-end" id="sceneEnd">12 m</span>
+             <div class="receiver" id="receiver" role="slider" tabindex="0" aria-label="Distancia del celular al router. Usa flechas o arrastra." aria-valuemin="1" aria-valuemax="12" aria-valuenow="4" aria-valuetext="4 metros">
+               <span class="phone-bubble" id="phoneBubble">Buena señal</span>
+               <span class="phone-outline"><span class="phone-screen"><span class="phone-wifi">⌁</span><span class="phone-dot"></span></span></span><small>TU CELULAR ↔</small>
+             </div>
+             <span class="scene-start">ROUTER FIJO</span><span class="scene-end" id="sceneEnd">12 m</span>
+             <span class="scene-drag-label" aria-hidden="true">↔ Arrástrame</span>
            </div>
            <div class="signal-strip">
              <div class="signal-reading"><span>POTENCIA ESTIMADA</span><strong id="signalValue">−53.2 <small>dBm</small></strong><span id="signalStatus" class="quality quality-good">Buena señal</span></div>
              <div class="signal-strength"><span>INDICADOR VISUAL</span><div class="signal-bars" id="signalBars"><i></i><i></i><i></i><i></i><i></i></div><small id="signalLoss">Pérdida total: 13.2 dB</small></div>
-             <div class="signal-distance"><span>DISTANCIA ACTUAL</span><strong id="signalDistance">4.0 <small>m</small></strong><small>Referencia: d₀ = 1 m</small></div>
+             <div class="signal-distance"><span>DISTANCIA ACTUAL</span><strong id="signalDistance">4.0 <small>m</small></strong><small>Referencia ajustable</small></div>
            </div>
+           <div class="scene-feedback" aria-live="polite"><span class="feedback-icon">💡</span><span id="sceneFeedback">La señal cambia con la distancia. ¡Prueba mover el celular!</span></div>
          </div>
          <div class="panel sweep-card">
            <div class="sweep-intro"><div><h3>Recorrido automático</h3><p>El receptor avanzará por intervalos; la gráfica se construirá punto por punto.</p></div><span class="pill-muted">SIMULACIÓN</span></div>
            <div class="sweep-controls"><label>Inicio (m)<input id="startDistance" type="number" value="1" step="0.5" min="0.1"></label><label>Final (m)<input id="endDistance" type="number" value="12" step="0.5" min="0.1"></label><label>Paso (m)<input id="stepDistance" type="number" value="1" step="0.1" min="0.1"></label><button id="runSweep" class="button primary" type="button">▶ Iniciar recorrido</button><button id="stopSweep" class="button icon-button" type="button" title="Detener recorrido" disabled>■</button></div>
-           <div class="sweep-progress"><i id="sweepProgress"></i></div><div class="sweep-footer"><span id="sweepMessage" aria-live="polite">Configura el recorrido y presiona Iniciar.</span><span id="sweepCounter">0 muestras</span></div>
+           <div class="sweep-progress"><i id="sweepProgress"></i></div><div class="sweep-footer"><span id="sweepMessage" aria-live="polite">Prueba a arrastrar el celular o inicia un recorrido automático.</span><span id="sweepCounter">0 muestras</span></div>
            <div class="mini-chart"><canvas id="sweepChart" role="img" aria-label="RSSI simulado durante el recorrido"></canvas><div id="sweepFallback" class="fallback-chart" hidden>La gráfica necesita Chart.js; puedes seguir usando el simulador.</div></div>
          </div>
        </div>
@@ -122,6 +143,7 @@
        <div class="panel metric-card"><span>RMSE del modelo</span><strong id="modelRmse">—</strong><small>Error cuadrático medio, en dB</small></div>
        <div class="panel metric-card"><span>Lecturas cargadas</span><strong id="realCount">0</strong><small id="realCountNote">Carga Excel para calcular</small></div>
      </div>
+     <div class="panel insight-card" id="insightCard"><span class="insight-emoji">✦</span><div><strong id="insightTitle">¿Qué nos cuentan los resultados?</strong><p id="insightText">La línea verde es una predicción. Importa mediciones para descubrir cuánto se parecen a la realidad.</p></div></div>
      <div class="panel analysis-graph">
        <div class="analysis-heading"><div><h3>Señal recibida vs. distancia</h3><p>Curva teórica, promedios observados y ajuste obtenido con las mediciones.</p></div><div class="graph-key"><span class="key-theory">Teoría</span><span class="key-real">Mediciones</span><span class="key-fit">Ajuste</span></div></div>
        <div class="chart-big"><canvas id="analysisChart" role="img" aria-label="Gráfico de modelo, mediciones y ajuste"></canvas><div id="analysisFallback" hidden class="fallback-chart">No se pudo cargar la librería de gráficos. Los resultados numéricos siguen disponibles.</div></div>
