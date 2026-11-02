@@ -5,6 +5,11 @@ Plataforma web desarrollada y mantenida por el equipo de Ismael.
 
 ### [Abrir el laboratorio interactivo](https://ismaelsvm.github.io/PROYECTO-FINAL-METODOS-NUMERICOS/)
 
+## Entrega: avance de esquema de prototipo
+
+- [**Ver el esquema del prototipo y criterios de prueba**](ESQUEMA_PROTOTIPO.md)
+- [Abrir la plataforma web funcionando](https://ismaelsvm.github.io/PROYECTO-FINAL-METODOS-NUMERICOS/#analisis)
+
 ## ¿Qué hace?
 
 SimuMath tiene como eje central un **experimento real de propagación Wi-Fi**:
@@ -12,7 +17,7 @@ SimuMath tiene como eje central un **experimento real de propagación Wi-Fi**:
 1. **Simular:** configurar una red de 2.4/5 GHz, RSSI de referencia, distancia, exponente de pérdidas y obstáculos. Un receptor se aleja de un router y la curva teórica se construye automáticamente.
 2. **Medir:** fijar un router y tomar entre 3 y 5 lecturas de RSSI (dBm) a distintas distancias (m) con una herramienta de medición Wi-Fi en un dispositivo.
 3. **Importar:** descargar la plantilla **.xlsx** o **.csv**, registrar una fila por lectura y abrir ese archivo desde el navegador. También se puede pegar una tabla directamente.
-4. **Analizar:** calcular promedios, desviación estándar muestral, regresión por mínimos cuadrados, interpolación de Lagrange, derivadas numéricas y un umbral mediante Newton-Raphson.
+4. **Analizar:** calcular promedios, desviación estándar muestral, regresión por mínimos cuadrados, interpolación local de Lagrange, spline cúbico natural, derivadas numéricas y raíces mediante Newton-Raphson.
 5. **Comparar:** confrontar el modelo inicial con las lecturas y exportar una tabla de resultados.
 
 **Las lecturas cargadas no se envían a servidores:** los cálculos se ejecutan localmente en el navegador. La opción **“Probar con datos de demostración”** usa datos sintéticos claramente identificados; **no cuenta como experimento real**.
@@ -52,8 +57,9 @@ El archivo descargable es una **plantilla vacía**: hay que registrar las lectur
 |---|---|
 | Mínimos cuadrados | Estimar un nuevo exponente de propagación \`n\` a partir de mediciones. |
 | Interpolación local de Lagrange | Obtener el RSSI aproximado en una distancia dentro del intervalo medido. |
+| **Spline cúbico natural** | Interpolar con segmentos cúbicos continuos que atraviesan los RSSI promediados, sin extrapolar. Se muestra la curva en el gráfico y se compara con Lagrange. |
 | Diferencias progresiva, central y regresiva | Estimar la pendiente en dBm/m, incluidas distancias desigualmente espaciadas. |
-| Newton-Raphson | Encontrar la distancia en que el modelo cruza un umbral de RSSI. |
+| Newton-Raphson | Encontrar la distancia en que el modelo cruza un umbral de RSSI; ver cada iteración y el residuo de la ecuación. |
 | MAE / RMSE | Cuantificar las diferencias entre mediciones y modelo en dB. |
 
 **No se calcula error porcentual sobre valores negativos de dBm**; se utilizan errores absolutos y RMSE medidos en dB.
