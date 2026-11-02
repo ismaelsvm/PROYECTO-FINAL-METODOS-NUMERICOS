@@ -5,7 +5,7 @@
 (function () {
   const byId = (id) => document.getElementById(id);
   const state = { rows: [], groups: [], source: 'none', label: '', sweep: [], sweepTimer: null, sweepChart: null, analysisChart: null, fit: null };
-  const chartColors = { theory: '#149a8a', observed: '#e39c48', fitted: '#7970cf', grid: 'rgba(49,85,108,.11)', text: '#687f91' };
+  const chartColors = { theory: '#149a8a', observed: '#e39c48', fitted: '#7970cf', grid: 'rgba(49,85,108,.11)', text: '#687f91', spline: '#278fce' };
   const fmt = (v, digits = 1) => Number.isFinite(v) ? Number(v).toFixed(digits) : '—';
   const finite = (v) => Number.isFinite(v);
   const rawNumber = (id) => Number(byId(id).value);
@@ -123,7 +123,8 @@
       data: { datasets: [
         { label: 'Modelo teórico', data: [], showLine: true, borderColor: chartColors.theory, backgroundColor: chartColors.theory, borderWidth: 2, pointRadius: 0, tension: .08 },
         { label: 'RSSI medido (promedios)', data: [], showLine: false, borderColor: chartColors.observed, backgroundColor: chartColors.observed, pointRadius: 5, pointHoverRadius: 7 },
-        { label: 'Ajuste por mínimos cuadrados', data: [], showLine: true, borderColor: chartColors.fitted, backgroundColor: chartColors.fitted, borderWidth: 2, pointRadius: 0, borderDash: [7, 5], tension: .08 }
+        { label: 'Ajuste por mínimos cuadrados', data: [], showLine: true, borderColor: chartColors.fitted, backgroundColor: chartColors.fitted, borderWidth: 2, pointRadius: 0, borderDash: [7, 5], tension: .08 },
+        { label: 'Spline cúbico natural', data: [], showLine: true, borderColor: chartColors.spline, backgroundColor: chartColors.spline, borderWidth: 2.5, pointRadius: 0, tension: 0 }
       ] },
       options: chartOptions('Distancia (m)', 'RSSI (dBm)')
     });
@@ -363,6 +364,70 @@
     const y = interpolated(nearest, x);
     box.innerHTML = '<strong>' + fmt(y, 2) + ' dBm</strong><br>' + 'Estimación a ' + fmt(x, 2) + ' m con ' + nearest.length + ' nodos: ' + nearest.map((r) => fmt(r.distance, 2)).join(', ') + ' m.';
   }
+  // Spline cúbico natural: M0 = Mn = 0 y continuidad de primera y segunda derivada.
+  function naturalSpline(groups) {
+    if (groups.length < 2) throw new Error('Se necesitan al menos dos nodos.');
+    const x = groups.map((g) => g.distance), y = groups.map((g) => g.mean);
+    const n = x.length, h = [];
+    for (let i = 0; i < n - 1; i++) {
+      const step = x[i + 1] - x[i];
+      if (!finite(step) || step <= 0) throw new Error('Las distancias deben ser únicas y crecientes.');
+      h.push(step);
+    }
+    const lower = Array(n).fill(0), diag = Array(n).fill(0), upper = Array(n).fill(0);
+    const rhs = Array(n).fill(0), second = Array(n).fill(0);
+    for (let i = 1; i < n - 1; i++) {
+      lower[i] = h[i - 1];
+      diag[i] = 2 * (h[i - 1] + h[i]);
+      upper[i] = h[i];
+      rhs[i] = 6 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1]);
+    }
+    for (let i = 2; i < n - 1; i++) {
+      const factor = lower[i] / diag[i - 1];
+      diag[i] -= factor * upper[i - 1];
+      rhs[i] -= factor * rhs[i - 1];
+    }
+    for (let i = n - 2; i >= 1; i--) {
+      second[i] = (rhs[i] - upper[i] * second[i + 1]) / diag[i];
+    }
+    return { x, y, second };
+  }
+  function evaluateNaturalSpline(spline, target) {
+    const { x, y, second } = spline;
+    if (!finite(target) || target < x[0] || target > x[x.length - 1]) return NaN;
+    let lo = 0, hi = x.length - 1;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (x[mid] <= target) lo = mid;
+      else hi = mid;
+    }
+    const h = x[lo + 1] - x[lo];
+    const left = (x[lo + 1] - target) / h;
+    const right = (target - x[lo]) / h;
+    return left * y[lo] + right * y[lo + 1] +
+      (Math.pow(left, 3) - left) * second[lo] * h * h / 6 +
+      (Math.pow(right, 3) - right) * second[lo + 1] * h * h / 6;
+  }
+  function calculateSpline() {
+    const groups = state.groups, target = rawNumber('splineDistance'), box = byId('splineResult');
+    if (groups.length < 3) {
+      box.textContent = 'Carga al menos tres distancias diferentes para interpolar con spline cúbico.';
+      return;
+    }
+    const min = groups[0].distance, max = groups[groups.length - 1].distance;
+    if (!finite(target) || target < min || target > max) {
+      box.textContent = 'Indica una distancia entre ' + fmt(min, 2) + ' y ' + fmt(max, 2) + ' m. No se extrapola.';
+      return;
+    }
+    try {
+      const curve = naturalSpline(groups);
+      const value = evaluateNaturalSpline(curve, target);
+      const nearest = groups.slice().sort((a, b) => Math.abs(a.distance - target) - Math.abs(b.distance - target)).slice(0, 3).sort((a, b) => a.distance - b.distance);
+      const lagrange = interpolated(nearest, target);
+      box.innerHTML = '<strong>' + fmt(value, 2) + ' dBm</strong> a ' + fmt(target, 2) + ' m.<br>' +
+        'Lagrange local: ' + fmt(lagrange, 2) + ' dBm · Diferencia: ' + fmt(Math.abs(value - lagrange), 2) + ' dB.';
+    } catch (err) { box.textContent = 'No se pudo calcular el spline: ' + err.message; }
+  }
   function derivatives(groups) {
     const out = [];
     for (let i = 0; i < groups.length; i++) {
@@ -396,17 +461,21 @@
   }
   function calculateThreshold() {
     const box = byId('thresholdResult'), threshold = rawNumber('threshold');
+    const tbody = byId('thresholdIterationsBody'); tbody.replaceChildren();
     let p;
     try { p = params(); } catch (err) { box.textContent = err.message; return; }
     if (!finite(threshold) || threshold < -180 || threshold > 30) { box.textContent = 'Ingresa un umbral válido en dBm.'; return; }
     const f = (d) => model(d, p) - threshold;
     const fp = (d) => -10 * p.n / (d * Math.LN10);
-    let d = p.d0, iterations = 0, converged = false;
+    const steps = [];
+    let d = p.d0, iterations = 0, converged = false, usedFallback = false;
     for (let k = 0; k < 70; k++) {
-      const delta = f(d) / fp(d);
+      const value = f(d), slope = fp(d);
+      const delta = value / slope;
       if (!finite(delta)) break;
       const next = delta >= d ? d / 2 : d - delta;
       if (!finite(next) || next <= 0 || next > 1e12) break;
+      steps.push({ k: k + 1, distance: d, value, change: Math.abs(next - d) });
       iterations++;
       if (Math.abs(next - d) < Math.max(1e-8, next * 1e-9)) { d = next; converged = true; break; }
       d = next;
@@ -415,9 +484,20 @@
       const exact = p.d0 * Math.pow(10, (p.r0 - p.walls * p.wallLoss - threshold) / (10 * p.n));
       if (!finite(exact)) { box.textContent = 'El umbral está fuera de un rango numérico calculable.'; return; }
       d = exact;
+      usedFallback = true;
     }
-    const caution = d > 30 ? ' Atención: es una extrapolación fuera de un escenario interior típico.' : d < p.d0 ? ' El umbral se alcanza antes de la distancia de referencia.' : '';
-    box.innerHTML = '<strong>' + fmt(d, d < 1 ? 3 : 2) + ' m</strong> para ' + fmt(threshold, 0) + ' dBm.<br>' + (converged ? 'Newton-Raphson convergió en ' + iterations + ' iteraciones.' : 'Se usó la solución analítica como respaldo.') + caution;
+    for (const s of steps) {
+      const tr = document.createElement('tr');
+      [String(s.k), fmt(s.distance, 4), fmt(s.value, 5), fmt(s.change, 6)].forEach((text) => {
+        const td = document.createElement('td'); td.textContent = text; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+    byId('thresholdDetails').hidden = steps.length === 0;
+    const caution = d > 30 ? ' Atención: extrapolación fuera de un interior típico.' : d < p.d0 ? ' El umbral se alcanza antes de la referencia.' : '';
+    box.innerHTML = '<strong>' + fmt(d, d < 1 ? 3 : 2) + ' m</strong> para ' + fmt(threshold, 0) + ' dBm.<br>' +
+      (usedFallback ? 'Newton no convergió; se usó la solución analítica de respaldo.' : 'Newton-Raphson convergió en ' + iterations + ' iteraciones.') +
+      ' Residuo f(d) ≈ ' + fmt(f(d), 5) + ' dB.' + caution;
   }
   function updateAnalysis() {
     let p;
@@ -446,6 +526,7 @@
       : 'La línea verde muestra el modelo teórico. Importa tu Excel para ver las mediciones (puntos amarillos) y el ajuste (línea violeta).';
     updateAnalysisChart(p, fit);
     calculateInterpolation();
+    calculateSpline();
     calculateDerivatives();
     updateComparison(p, m, fit);
     calculateThreshold();
@@ -466,6 +547,16 @@
     chart.data.datasets[0].data = theory;
     chart.data.datasets[1].data = state.groups.map((r) => ({ x: r.distance, y: r.mean }));
     chart.data.datasets[2].data = fitted;
+    const splineCurve = [];
+    if (state.groups.length >= 3) {
+      const spline = naturalSpline(state.groups);
+      const low = state.groups[0].distance, high = state.groups[state.groups.length - 1].distance;
+      for (let i = 0; i <= 150; i++) {
+        const x = low + (high - low) * i / 150;
+        splineCurve.push({ x, y: evaluateNaturalSpline(spline, x) });
+      }
+    }
+    chart.data.datasets[3].data = splineCurve;
     chart.update('none');
   }
   function updateComparison(p, m, fit) {
@@ -572,6 +663,7 @@
     zone.addEventListener('dragleave', () => zone.classList.remove('dragging'));
     zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('dragging'); readFile(e.dataTransfer.files[0]); });
     byId('interpolateButton').addEventListener('click', calculateInterpolation);
+    byId('splineButton').addEventListener('click', calculateSpline);
     byId('thresholdButton').addEventListener('click', calculateThreshold);
     byId('downloadResults').addEventListener('click', downloadResults);
     const sections = ['laboratorio', 'mediciones', 'analisis', 'comparacion'];
@@ -590,7 +682,11 @@
     const fit = fitMeasurements([{ distance: 1, rssi: -40 }, { distance: 10, rssi: -60 }, { distance: 100, rssi: -80 }], 1);
     const interp = interpolated([{ distance: 1, mean: -40 }, { distance: 2, mean: -46 }, { distance: 3, mean: -50 }], 2);
     const d = derivatives([{ distance: 1, mean: -2 }, { distance: 2, mean: -4 }, { distance: 4, mean: -8 }]);
-    return close(model(1, p), -40) && close(model(10, p), -60) && close(fit.n, 2) && close(interp, -46) && close(d[1].value, -2);
+    const knots = [{ distance: 1, mean: -40 }, { distance: 2, mean: -46 }, { distance: 4, mean: -49 }, { distance: 7, mean: -61 }];
+    const curve = naturalSpline(knots);
+    const splinePassesNodes = knots.every((k) => close(evaluateNaturalSpline(curve, k.distance), k.mean));
+    const linear = naturalSpline([{ distance: 1, mean: 4 }, { distance: 3, mean: 8 }]);
+    return close(model(1, p), -40) && close(model(10, p), -60) && close(fit.n, 2) && close(interp, -46) && close(d[1].value, -2) && splinePassesNodes && close(evaluateNaturalSpline(linear, 2), 6);
   }
   function init() {
     if (!runSelfChecks()) console.error('SimuMath: fallo en pruebas internas de los métodos numéricos.');
