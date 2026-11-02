@@ -10,10 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="wifi.css?v=2">
-  <link rel="stylesheet" href="wifi-friendly.css?v=3">
+  <link rel="stylesheet" href="wifi-friendly.css?v=4">
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script defer src="wifi.js?v=2"></script>
+  <script defer src="wifi.js?v=3"></script>
 </head>
 <body>
  <div class="ambient" aria-hidden="true"></div>
@@ -145,16 +145,25 @@
      </div>
      <div class="panel insight-card" id="insightCard"><span class="insight-emoji">✦</span><div><strong id="insightTitle">¿Qué nos cuentan los resultados?</strong><p id="insightText">La línea verde es una predicción. Importa mediciones para descubrir cuánto se parecen a la realidad.</p></div></div>
      <div class="panel analysis-graph">
-       <div class="analysis-heading"><div><h3>Señal recibida vs. distancia</h3><p>Curva teórica, promedios observados y ajuste obtenido con las mediciones.</p></div><div class="graph-key"><span class="key-theory">Teoría</span><span class="key-real">Mediciones</span><span class="key-fit">Ajuste</span></div></div>
+       <div class="analysis-heading"><div><h3>Señal recibida vs. distancia</h3><p>Curva teórica, mediciones, ajuste y spline cúbico basado en datos.</p></div><div class="graph-key"><span class="key-theory">Teoría</span><span class="key-real">Mediciones</span><span class="key-fit">Ajuste</span><span class="key-spline">Spline natural</span></div></div>
        <div class="chart-big"><canvas id="analysisChart" role="img" aria-label="Gráfico de modelo, mediciones y ajuste"></canvas><div id="analysisFallback" hidden class="fallback-chart">No se pudo cargar la librería de gráficos. Los resultados numéricos siguen disponibles.</div></div>
        <p id="analysisNote" class="chart-note">La línea muestra el modelo actual. Importa tu Excel para habilitar las mediciones y el ajuste por mínimos cuadrados.</p>
      </div>
      <div class="methods-grid">
        <article class="panel method-card"><div class="method-num">MÉTODO 01</div><h3>Interpolación de Lagrange</h3><p>Estima el RSSI entre distancias que sí mediste, usando hasta tres puntos cercanos.</p><label class="field-label" for="interpolationDistance">Distancia a interpolar (m)</label><div class="inline-input"><input id="interpolationDistance" type="number" step="0.1" min="0.1" value="3.5"><button id="interpolateButton" class="button small" type="button">Calcular</button></div><div id="interpolationResult" class="method-result">Importa mediciones para interpolar.</div><small>Se evita extrapolar fuera del rango medido.</small></article>
-       <article class="panel method-card"><div class="method-num">MÉTODO 02</div><h3>Derivación numérica</h3><p>Estima cuánto cambia el RSSI por cada metro. Emplea diferencias progresiva, central y regresiva.</p><div id="derivativeResult" class="method-result">Importa mediciones para estimar pendientes.</div><details id="derivativeDetails" class="method-details"><summary>Ver tabla de derivadas</summary><div class="table-scroll"><table><thead><tr><th>Distancia</th><th>Método</th><th>d(RSSI)/dd</th></tr></thead><tbody id="derivativesBody"></tbody></table></div></details></article>
-       <article class="panel method-card"><div class="method-num">MÉTODO 03</div><h3>Newton-Raphson</h3><p>Calcula a qué distancia el modelo llega a un umbral de potencia elegido.</p><label class="field-label" for="threshold">Umbral de señal (dBm)</label><div class="inline-input"><input id="threshold" type="number" min="-110" max="-10" step="1" value="-70"><button id="thresholdButton" class="button small" type="button">Encontrar</button></div><div id="thresholdResult" class="method-result">Pulsa Encontrar para estimar la distancia límite.</div><small>Umbral orientativo, no garantiza velocidad ni cobertura real.</small></article>
+       <article class="panel method-card spline-card">
+         <div class="method-num">MÉTODO 02 · INTERPOLACIÓN POR TRAMOS</div>
+         <h3>Spline cúbico natural</h3>
+         <p>Construye una curva suave por los promedios medidos y permite comparar la estimación con Lagrange.</p>
+         <label class="field-label" for="splineDistance">Distancia a interpolar (m)</label>
+         <div class="inline-input"><input id="splineDistance" type="number" step="0.1" min="0.1" value="3.5"><button id="splineButton" class="button small" type="button">Calcular</button></div>
+         <div id="splineResult" class="method-result" aria-live="polite">Carga al menos tres distancias para calcular el spline.</div>
+         <small>Condición natural: segunda derivada cero en los extremos. Sin extrapolación.</small>
+       </article>
+       <article class="panel method-card"><div class="method-num">HERRAMIENTA COMPLEMENTARIA</div><h3>Derivación numérica</h3><p>Estima cuánto cambia el RSSI por cada metro. Emplea diferencias progresiva, central y regresiva.</p><div id="derivativeResult" class="method-result">Importa mediciones para estimar pendientes.</div><details id="derivativeDetails" class="method-details"><summary>Ver tabla de derivadas</summary><div class="table-scroll"><table><thead><tr><th>Distancia</th><th>Método</th><th>d(RSSI)/dd</th></tr></thead><tbody id="derivativesBody"></tbody></table></div></details></article>
+       <article class="panel method-card"><div class="method-num">MÉTODO 03 · RAÍCES</div><h3>Newton-Raphson</h3><p>Resuelve f(d) = RSSI(d) − umbral = 0 para hallar una distancia crítica del modelo WiFi.</p><label class="field-label" for="threshold">Umbral de señal (dBm)</label><div class="inline-input"><input id="threshold" type="number" min="-110" max="-10" step="1" value="-70"><button id="thresholdButton" class="button small" type="button">Encontrar raíz</button></div><div id="thresholdResult" class="method-result">Pulsa Encontrar para estimar la distancia límite.</div><details id="thresholdDetails" class="method-details"><summary>Ver iteraciones de Newton-Raphson</summary><div class="table-scroll"><table><thead><tr><th>Iteración</th><th>Distancia (m)</th><th>f(d) (dB)</th><th>Cambio (m)</th></tr></thead><tbody id="thresholdIterationsBody"></tbody></table></div></details><small>Umbral orientativo, no garantiza velocidad ni cobertura real.</small></article>
      </div>
-     <div class="math-explain panel"><div><strong>¿Dónde están las matemáticas?</strong><p>La regresión estima un modelo a partir de datos reales; Lagrange interpola valores intermedios; las diferencias finitas miden cambios locales y Newton-Raphson resuelve el umbral del modelo.</p></div><a href="#comparacion">Ir a la comparación →</a></div>
+     <div class="math-explain panel"><div><strong>¿Dónde están las matemáticas?</strong><p>La regresión ajusta la propagación a los datos; Lagrange estima puntos intermedios, el spline cúbico construye una curva continua por tramos y Newton-Raphson calcula la distancia crítica como raíz. Las diferencias finitas complementan el análisis.</p></div><a href="https://github.com/ismaelsvm/PROYECTO-FINAL-METODOS-NUMERICOS/blob/main/ESQUEMA_PROTOTIPO.md" target="_blank" rel="noopener noreferrer">Ver esquema del prototipo ↗</a></div>
    </section>
 
    <section id="comparacion" class="wrap section last-section">
